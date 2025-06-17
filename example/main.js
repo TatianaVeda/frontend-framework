@@ -16,7 +16,11 @@ import { IconDetail } from './components/IconDetail.js';
 
 // Импорт новых компонентов (пусть они лежат, например, в папке example/components/extra/)
 import { Chat } from './components/extra/Chat.js';
- import { FileProgressDemo } from './components/extra/FileProgressDemo.js';
+import { FileProgressDemo } from './components/extra/FileProgressDemo.js';
+
+// Новые компоненты
+import { initWeatherWidget } from './components/WeatherWidget.js';
+import { initImageGallery } from './components/ImageGallery.js';
 
 //WORK
 
@@ -229,6 +233,44 @@ registerRoute('/file-progress', () => {
   }
   currentComponent = bindComponentToStateWithDeps('FileProgressDemo', {}, app);
 });
+
+// Новые маршруты
+registerRoute('/weather', () => {
+  const app = document.getElementById('app');
+  if (currentComponent && currentComponent.unmount) {
+    currentComponent.unmount();
+    currentComponent = null;
+  }
+  // Создаем контейнер для виджета погоды
+  app.innerHTML = '<div id="weather-widget"></div>';
+  initWeatherWidget();
+});
+
+registerRoute('/gallery', () => {
+  const app = document.getElementById('app');
+  if (currentComponent && currentComponent.unmount) {
+    currentComponent.unmount();
+    currentComponent = null;
+  }
+  initImageGallery();
+  currentComponent = bindComponentToStateWithDeps('image-gallery', {}, app);
+});
+
+registerRoute('/gallery/:id', (route) => {
+  const app = document.getElementById('app');
+  if (currentComponent && currentComponent.unmount) {
+    currentComponent.unmount();
+    currentComponent = null;
+  }
+  initImageGallery();
+  const imageId = parseInt(route.params.id);
+  import('./components/ImageGallery.js').then(({ selectImage }) => {
+    selectImage(imageId);
+    currentComponent = bindComponentToStateWithDeps('image-gallery', {}, app);
+  });
+});
+
+
 
 
 
