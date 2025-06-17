@@ -287,8 +287,8 @@ app.use((req, res, next) => {
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " +
     "style-src 'self' 'unsafe-inline';" +
-        "img-src 'self' data: https://picsum.photos https://via.placeholder.com https://jsonplaceholder.typicode.com https://images.unsplash.com https://dog.ceo https://cdn2.thecatapi.com; " +
-    "connect-src 'self' https://wttr.in https://api.openweathermap.org https://api.weatherapi.com https://api.unsplash.com https://pixabay.com https://picsum.photos https://jsonplaceholder.typicode.com https://dog.ceo https://api.thecatapi.com;"
+    "img-src 'self' data: https://picsum.photos https://fastly.picsum.photos https://via.placeholder.com https://jsonplaceholder.typicode.com https://images.unsplash.com https://dog.ceo https://cdn2.thecatapi.com; " +
+    "connect-src 'self' https://wttr.in https://api.unsplash.com https://pixabay.com https://picsum.photos https://jsonplaceholder.typicode.com;"
   );
 
   next();

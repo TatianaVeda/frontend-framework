@@ -1,8 +1,10 @@
 // example/components/WeatherWidget.js
 import { defineComponent, renderComponent, bindComponentToStateWithDeps } from 'framework/components.js';
-import { setState, getState, subscribe } from 'framework/state.js';
+import { setState, getState, subscribe, unsubscribe } from 'framework/state.js';
 import { getData } from 'framework/api.js';
-import { Config } from 'framework/config.js';
+import { delegateEvent, removeDelegateEventsByNamespace } from 'framework/events.js';
+import { clearChildren, setTextContent } from 'framework/dom.js';
+import Logger from 'framework/logger.js';
 
 // Популярные города для быстрого выбора (на разных языках)
 const POPULAR_CITIES = [
@@ -10,7 +12,7 @@ const POPULAR_CITIES = [
   'Amsterdam', '北京 (Beijing)', 'Sydney', 'Toronto', 'Санкт-Петербург', 'Київ (Kiev)'
 ];
 
-// Карта кодов погоды wttr.in в эмодзи (специфично для погодного виджета)
+// Карта кодов погоды wttr.in в эмодзи
 const WEATHER_ICONS = {
   '113': '☀️', '116': '⛅', '119': '☁️', '122': '☁️',
   '143': '🌫️', '176': '🌦️', '179': '🌨️', '182': '🌨️',
@@ -28,83 +30,56 @@ const WEATHER_ICONS = {
 
 const DEFAULT_WEATHER_ICON = '🌤️';
 
-// Настройки для погодного виджета
+// Настройки виджета
 const CACHE_TIMEOUT = 10 * 60 * 1000; // 10 минут
 const REQUEST_TIMEOUT = 5000; // 5 секунд
 
-// Простое кеширование на уровне приложения
-const weatherCache = new Map();
-
-// Функция для получения данных о погоде через wttr.in с использованием фреймворка
+// Функция для получения данных о погоде через API фреймворка с кешированием
 async function fetchWeatherData(city) {
-  // Проверяем кеш
-  const cacheKey = city.toLowerCase();
-  const cached = weatherCache.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < CACHE_TIMEOUT) {
-    console.log('Используем кешированные данные для:', city);
-    return cached.data;
-  }
+  const cacheKey = `weather_${city.toLowerCase()}`;
   
-  try { 
-    // Используем прямой fetch для внешнего API, чтобы избежать конфликтов с заголовками фреймворка
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-    
-    const url = `https://wttr.in/${encodeURIComponent(city)}?format=j1`;
-    console.log('Запрос погоды для:', city, 'URL:', url);
-    
-    const response = await fetch(url, {
-      method: 'GET',
-      signal: controller.signal,
+  try {
+    // Используем API фреймворка с встроенным кешированием
+    const response = await getData(`https://wttr.in/${encodeURIComponent(city)}?format=j1`, {
+      timeout: REQUEST_TIMEOUT,
+      cacheKey,
       headers: {
         'Accept': 'application/json',
-        'User-Agent': 'curl/7.64.1' // wttr.in лучше работает с curl user-agent
+        'User-Agent': 'curl/7.64.1'
+      },
+      metricsLabel: `weather-${city}`,
+      onError: (error) => {
+        Logger.error(`Ошибка при получении погоды для ${city}:`, error);
       }
     });
+
+    Logger.debug('Получены данные погоды:', response);
     
-    clearTimeout(timeoutId);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    console.log('Получены данные погоды:', data);
-    
-    if (data.current_condition && data.current_condition[0]) {
-      const current = data.current_condition[0];
+    if (response.current_condition && response.current_condition[0]) {
+      const current = response.current_condition[0];
       
-      const result = {
+      return {
         city: city,
         temp: Math.round(current.temp_C),
         weather: current.weatherDesc[0].value,
         icon: WEATHER_ICONS[current.weatherCode] || DEFAULT_WEATHER_ICON,
         source: 'wttr.in'
       };
-      
-      // Сохраняем в кеш
-      weatherCache.set(cacheKey, {
-        data: result,
-        timestamp: Date.now()
-      });
-      
-      return result;
     } else {
       throw new Error('Неполные данные от API');
     }
   } catch (error) {
-    console.error(`Ошибка при получении погоды для ${city}:`, error);
+    Logger.error(`Ошибка при получении погоды для ${city}:`, error);
     throw error;
   }
 }
 
-// Компонент погоды
-defineComponent('weather-widget', (props) => {
+// Компонент погоды с оптимизированным рендерингом
+defineComponent('weather-widget', () => {
   const currentWeather = getState('weather.current');
   const loading = getState('weather.loading');
   
-  // Временная отладка
-  console.log('Рендер компонента. loading:', loading, 'currentWeather:', !!currentWeather);
+  Logger.debug('Рендер weather-widget. loading:', loading, 'currentWeather:', !!currentWeather);
   
   // Определяем содержимое для отображения погоды
   let weatherContent;
@@ -148,7 +123,10 @@ defineComponent('weather-widget', (props) => {
   // Контейнер для всего виджета
   return {
     tag: 'div',
-    props: { class: `weather-widget${loading ? ' loading' : ''}` },
+    props: { 
+      class: `weather-widget${loading ? ' loading' : ''}`,
+      'data-component': 'weather-widget'
+    },
     children: [
       { tag: 'h1', children: ['🌤️ Weather Widget'] },
       {
@@ -165,34 +143,16 @@ defineComponent('weather-widget', (props) => {
                 props: { 
                   type: 'text',
                   class: 'city-input',
-                  placeholder: 'Например: Москва, London, 東京...'
-                  // Убираем value: inputValue, чтобы поле управляло своим значением
-                },
-                events: {
-                  // Убираем обработчик input - он не нужен
-                  keypress: (e) => {
-                    if (e.key === 'Enter' && e.target.value.trim()) {
-                      e.preventDefault(); // Предотвращаем отправку формы
-                      loadWeather(e.target.value.trim());
-                    }
-                  }
+                  placeholder: 'Например: Москва, London, 東京...',
+                  'data-action': 'city-input'
                 }
               },
               {
                 tag: 'button',
                 props: { 
                   class: 'search-btn',
-                  type: 'button'
-                },
-                events: {
-                  click: (e) => {
-                    e.preventDefault(); // Предотвращаем стандартное поведение
-                    const input = document.querySelector('.city-input');
-                    const cityName = input ? input.value.trim() : '';
-                    if (cityName && !getState('weather.loading')) {
-                      loadWeather(cityName);
-                    }
-                  }
+                  type: 'button',
+                  'data-action': 'search-weather'
                 },
                 children: [loading ? '🔄' : '🔍']
               }
@@ -212,23 +172,9 @@ defineComponent('weather-widget', (props) => {
               tag: 'button',
               props: { 
                 class: 'city-btn',
-                type: 'button'
-              },
-              events: {
-                click: (e) => {
-                  e.preventDefault(); // Предотвращаем стандартное поведение
-                  console.log('Клик по городу:', city, 'текущее состояние loading:', getState('weather.loading'));
-                  if (!getState('weather.loading')) {
-                    // Извлекаем название города без перевода в скобках для API
-                    const cityForAPI = city.split(' (')[0]; // Берем только часть до скобок
-                    // Устанавливаем значение напрямую в поле ввода (с переводом для показа)
-                    const input = document.querySelector('.city-input');
-                    if (input) {
-                      input.value = city; // Показываем полное название с переводом
-                    }
-                    loadWeather(cityForAPI); // Отправляем в API только оригинальное название
-                  }
-                }
+                type: 'button',
+                'data-action': 'select-city',
+                'data-city': city
               },
               children: [city]
             }))
@@ -241,19 +187,40 @@ defineComponent('weather-widget', (props) => {
   };
 });
 
-// Функция загрузки погоды с использованием фреймворка
+// Функция для сохранения истории запросов (используем persistentState)
+function saveToHistory(city, weatherData) {
+  const history = getState('weather.history') || [];
+  const newEntry = {
+    city,
+    timestamp: Date.now(),
+    weather: weatherData
+  };
+  
+  // Сохраняем только последние 10 запросов
+  const updatedHistory = [newEntry, ...history.slice(0, 9)];
+  setState('weather.history', updatedHistory);
+  Logger.debug('Сохранен в историю:', city);
+}
+
+// Функция загрузки погоды
 async function loadWeather(city) {
-  console.log('Начинаем загрузку погоды для:', city);
+  if (getState('weather.loading')) {
+    Logger.debug('Запрос погоды уже выполняется, пропускаем');
+    return;
+  }
+
+  Logger.debug('Начинаем загрузку погоды для:', city);
   setState('weather.loading', true);
-  console.log('Установили loading: true');
   
   try {
     const weatherData = await fetchWeatherData(city);
-    console.log('Получили данные:', weatherData);
+    Logger.debug('Получили данные:', weatherData);
     setState('weather.current', weatherData);
-    console.log('Установили состояние weather.current:', getState('weather.current'));
+    
+    // Сохраняем в историю при успешном запросе
+    saveToHistory(city, weatherData);
   } catch (error) {
-    console.error('Ошибка загрузки погоды:', error);
+    Logger.error('Ошибка загрузки погоды:', error);
     const errorData = {
       city: city,
       temp: '--',
@@ -263,59 +230,140 @@ async function loadWeather(city) {
     };
     console.log('Устанавливаем данные об ошибке:', errorData);
     setState('weather.current', errorData);
-    console.log('Установили данные об ошибке');
   } finally {
     setState('weather.loading', false);
     console.log('Установили loading: false. Финальное состояние:', getState('weather'));
   }
 }
 
-// Инициализация виджета
+// Экспорт функции для получения истории
+export function getWeatherHistory() {
+  return getState('weather.history') || [];
+}
+
+// Инициализация виджета с использованием событийной системы фреймворка
 export function initWeatherWidget() {
-  console.log('Инициализация погодного виджета...');
+  Logger.info('Инициализация погодного виджета...');
   
   // Инициализируем состояние
   setState('weather', {
     current: null,
-    loading: false
+    loading: false,
+    history: []
   });
-  
+
+  const element = document.getElementById('weather-widget');
+  if (!element) {
+    Logger.error('Элемент #weather-widget не найден');
+    return;
+  }
+
   let isRendering = false; // Флаг для предотвращения множественных рендеров
+  let lastRenderState = null; // Для отслеживания изменений состояния
   
-  // Функция для рендеринга
+  // ПРИНУДИТЕЛЬНАЯ ПОЛНАЯ ОЧИСТКА для предотвращения накопления данных
   const render = () => {
-    if (isRendering) return; // Предотвращаем множественные рендеры
-    isRendering = true;
+    if (isRendering) return;
     
-    const element = document.getElementById('weather-widget');
-    if (element) {
-      // ПРИНУДИТЕЛЬНАЯ ОЧИСТКА: Полностью очищаем контейнер перед каждым рендером
-      // Это необходимо из-за проблем в фреймворке с накоплением элементов
-      element.innerHTML = '';
-      element._vNode = null; // Сбрасываем кеш фреймворка
-      
-      renderComponent('weather-widget', {}, element);
+    // Проверяем, изменилось ли состояние
+    const currentState = {
+      current: getState('weather.current'),
+      loading: getState('weather.loading')
+    };
+    
+    const stateChanged = !lastRenderState || 
+      JSON.stringify(lastRenderState) !== JSON.stringify(currentState);
+    
+    if (!stateChanged) {
+      Logger.debug('Состояние не изменилось, рендер пропущен');
+      return;
     }
     
-    isRendering = false;
+    isRendering = true;
+    lastRenderState = currentState;
+    
+    try {
+      Logger.debug('Выполняем принудительную полную очистку DOM');
+      
+      // ПОЛНАЯ ПРИНУДИТЕЛЬНАЯ ОЧИСТКА: Используем утилиты фреймворка
+      clearChildren(element); // Используем утилиту фреймворка вместо innerHTML = ''
+      element._vNode = null; // Сбрасываем кеш фреймворка
+      
+      // Убираем все классы и атрибуты, которые могли накопиться
+      element.className = '';
+      element.removeAttribute('style');
+      
+      renderComponent('weather-widget', {}, element);
+      Logger.debug('Компонент отрендерен успешно');
+    } catch (error) {
+      Logger.error('Ошибка при рендеринге виджета:', error);
+    } finally {
+      isRendering = false;
+    }
   };
   
-  // Подписываемся на изменения состояния с debounce
+  // Подписываемся на изменения состояния с debounce для предотвращения избыточных рендеров
   let renderTimeout;
   const debouncedRender = () => {
     clearTimeout(renderTimeout);
-    renderTimeout = setTimeout(render, 10);
+    renderTimeout = setTimeout(render, 100); // Увеличили debounce до 100ms для меньшей частоты рендеров
   };
   
+  // Подписки только на необходимые части состояния
   subscribe('weather.current', debouncedRender);
   subscribe('weather.loading', debouncedRender);
-  // Убираем подписку на inputValue, чтобы избежать рендера при каждой букве
-  // subscribe('weather.inputValue', debouncedRender);
   
-  console.log('Подписки созданы');
+  // Настраиваем обработчики событий через систему делегирования фреймворка
+  
+  // Обработчик для кнопки поиска
+  delegateEvent(element, 'click', '[data-action="search-weather"]', (e) => {
+    e.preventDefault();
+    const input = element.querySelector('[data-action="city-input"]');
+    const cityName = input ? input.value.trim() : '';
+    if (cityName && !getState('weather.loading')) {
+      loadWeather(cityName);
+    }
+  }, { namespace: 'weather-widget' });
+
+  // Обработчик для Enter в поле ввода
+  delegateEvent(element, 'keypress', '[data-action="city-input"]', (e) => {
+    if (e.key === 'Enter' && e.target.value.trim()) {
+      e.preventDefault();
+      if (!getState('weather.loading')) {
+        loadWeather(e.target.value.trim());
+      }
+    }
+  }, { namespace: 'weather-widget' });
+
+  // Обработчик для кнопок популярных городов
+  delegateEvent(element, 'click', '[data-action="select-city"]', (e) => {
+    e.preventDefault();
+    const city = e.target.dataset.city;
+    if (city && !getState('weather.loading')) {
+      // Извлекаем название города без перевода в скобках для API
+      const cityForAPI = city.split(' (')[0];
+      // Устанавливаем значение в поле ввода используя DOM утилиты
+      const input = element.querySelector('[data-action="city-input"]');
+      if (input) {
+        input.value = city;
+      }
+      loadWeather(cityForAPI);
+    }
+  }, { namespace: 'weather-widget' });
+
+  Logger.info('Погодный виджет инициализирован');
   
   // Первичный рендер с небольшой задержкой
-  setTimeout(render, 10);
+  setTimeout(render, 100);
+
+  // Возвращаем функцию очистки для удаления всех обработчиков
+  return () => {
+    clearTimeout(renderTimeout);
+    removeDelegateEventsByNamespace(element, 'weather-widget');
+    unsubscribe('weather.current', debouncedRender);
+    unsubscribe('weather.loading', debouncedRender);
+    Logger.info('Погодный виджет размонтирован');
+  };
 }
 
 // Экспортируем функцию загрузки для внешнего использования

@@ -32,6 +32,7 @@ import { initImageGallery } from './components/ImageGallery.js';
 // import { I18nDemo } from './components/extra/I18nDemo.js';
 // import { Calendar } from 'framework/plugins/calendar.js'; // если плагин оттуда
 
+// Инициализация persistent state для сохранения состояния между сессиями
 initPersistentState();
 
 const ICON_SRC_MAP = {
