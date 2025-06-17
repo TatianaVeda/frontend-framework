@@ -1,0 +1,21 @@
+.icon-gallery img {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 8px;
+    background: #f9f9f9;
+  }
+  .icon-item:hover img {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  /* Обёртка для каждой иконки: задаём «заготовку» без трансформаций */
+.icon-wrapper {
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+/* При hover: масштабируем и даём тень */
+.icon-wrapper:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
