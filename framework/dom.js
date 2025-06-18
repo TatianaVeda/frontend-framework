@@ -1,4 +1,3 @@
-// /dot-js/framework/dom.js
 
 
 export function createElement(tagName, attributes = {}) {
@@ -99,3 +98,10 @@ export function createElement(tagName, attributes = {}) {
     });
   }
   
+ 
+export function applyTheme(themeVars = {}) {
+  const root = document.documentElement;
+  Object.entries(themeVars).forEach(([name, val]) => {
+    root.style.setProperty(name, val);
+  });
+}

@@ -1,10 +1,13 @@
+
 import { Router, registerRoute, registerNotFound, navigateTo } from 'framework/router.js';
 import { initPersistentState } from 'framework/persistentState.js';
 import { renderComponent, defineComponent, bindComponentToStateWithDeps } from 'framework/components.js';
 import { registerHooks } from 'framework/router.js';
-import { getState, setState } from 'framework/state.js';
-import { IconDemo } from './components/IconDemo.js';
+import { getState, setState, subscribe } from 'framework/state.js';
+import { applyTheme } from 'framework/dom.js';
+import { Config } from 'framework/config.js';
 
+import { IconDemo } from './components/IconDemo.js';
 import { TimeTracker } from './components/timeTracker.js';
 import { QueueManager } from './components/queueManager.js';
 import { PerformanceDashboard } from './components/performanceDashboard.js';
@@ -13,29 +16,72 @@ import { EventsDemo } from './components/EventsDemo.js';
 import { DOMUtilsDemo } from './components/DOMUtilsDemo.js';
 import { FormDemo } from './components/FormDemo.js';
 import { IconDetail } from './components/IconDetail.js';
+import { ThemeSwitcher } from './components/ThemeSwitcher.js';
 
-// Импорт новых компонентов (пусть они лежат, например, в папке example/components/extra/)
+// дополнительные демо-компоненты
 import { Chat } from './components/extra/Chat.js';
- import { FileProgressDemo } from './components/extra/FileProgressDemo.js';
-
-//WORK
-
-// import { ThemeSwitcher } from './components/extra/ThemeSwitcher.js';
-// import { HeavyComponent } from './components/extra/HeavyComponent.js';
-// import { OfflineDemo } from './components/extra/OfflineDemo.js';
-// import { UndoRedoDemo } from './components/extra/UndoRedoDemo.js';
-// import { ValidatedForm } from './components/extra/ValidatedForm.js';
-// import { I18nDemo } from './components/extra/I18nDemo.js';
-// import { Calendar } from 'framework/plugins/calendar.js'; // если плагин оттуда
+import { FileProgressDemo } from './components/extra/FileProgressDemo.js';
 
 initPersistentState();
+
+// ——— Логика автодетекта и реакции на смену темы ———
+
+// Инициализация state для темы, если ещё не задано
+if (getState('themeMode') === undefined) {
+  setState('themeMode', Config.theme.default);
+}
+if (getState('customTheme') === undefined) {
+  setState('customTheme', Config.theme.vars.custom || {});
+}
+
+// Функция, возвращающая набор CSS-переменных для режима
+function resolveThemeVars(mode, customVars) {
+  // авто-режим по prefers-color-scheme
+  if (mode === 'auto' && Config.theme.autoDetect) {
+    const darkMq = window.matchMedia('(prefers-color-scheme: dark)');
+    mode = darkMq.matches ? 'dark' : 'light';
+    // слушаем изменение системных настроек
+    darkMq.addEventListener('change', () => {
+      if (getState('themeMode') === 'auto') {
+        applyTheme(resolveThemeVars('auto', getState('customTheme')));
+      }
+    });
+  }
+  // кастомная тема
+  if (mode === 'custom') {
+    return customVars || {};
+  }
+  // светлая или тёмная
+  return Config.theme.vars[mode] || {};
+}
+
+// подписываемся на смену режима темы
+subscribe('themeMode', () => {
+  const mode   = getState('themeMode');
+  const custom = getState('customTheme');
+  applyTheme(resolveThemeVars(mode, custom));
+});
+// подписываемся на изменение палитры, если активен режим custom
+subscribe('customTheme', () => {
+  if (getState('themeMode') === 'custom') {
+    applyTheme(getState('customTheme'));
+  }
+});
+// сразу применяем текущие настройки
+(() => {
+  const mode   = getState('themeMode');
+  const custom = getState('customTheme');
+  applyTheme(resolveThemeVars(mode, custom));
+})();
+
+// ——— конец темы ———
 
 const ICON_SRC_MAP = {
   android192: '/android-chrome-192x192.png',
   android512: '/android-chrome-512x512.png',
-  apple:     '/apple-touch-icon.png',
-  fav16:     '/favicon-16x16.png',
-  fav32:     '/favicon-32x32.png'
+  apple:      '/apple-touch-icon.png',
+  fav16:      '/favicon-16x16.png',
+  fav32:      '/favicon-32x32.png'
 };
 
 let currentComponent = null;
@@ -84,114 +130,74 @@ defineComponent('DOMUtilsDemo', DOMUtilsDemo);
 defineComponent('FormDemo', FormDemo);
 defineComponent('IconDemo', IconDemo);
 defineComponent('IconDetail', IconDetail);
-
-// Регистрируем каждый новый компонент
+defineComponent('ThemeSwitcher', ThemeSwitcher);
 defineComponent('Chat', Chat);
 defineComponent('FileProgressDemo', FileProgressDemo);
-//WORK
-// 
-// defineComponent('ThemeSwitcher', ThemeSwitcher);
-// defineComponent('HeavyComponent', HeavyComponent);
-// defineComponent('OfflineDemo', OfflineDemo);
-// defineComponent('UndoRedoDemo', UndoRedoDemo);
-// defineComponent('ValidatedForm', ValidatedForm);
-// defineComponent('I18nDemo', I18nDemo);
-// defineComponent('Calendar', Calendar);
 
 registerRoute('/', () => {
   const app = document.getElementById('app');
-  if (currentComponent && typeof currentComponent.unmount === 'function') {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
+  if (currentComponent?.unmount) currentComponent.unmount();
   renderComponent('Home', {}, app);
 });
 
 registerRoute('/time-tracker', () => {
   const app = document.getElementById('app');
-  if (currentComponent && typeof currentComponent.unmount === 'function') {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
+  if (currentComponent?.unmount) currentComponent.unmount();
   renderComponent('TimeTracker', {}, app);
 });
 
 registerRoute('/queue', () => {
   const app = document.getElementById('app');
-  if (currentComponent && typeof currentComponent.unmount === 'function') {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
+  if (currentComponent?.unmount) currentComponent.unmount();
   currentComponent = bindComponentToStateWithDeps('QueueManager', {}, app);
 });
 
 registerRoute('/performance', () => {
   const app = document.getElementById('app');
-  if (currentComponent && typeof currentComponent.unmount === 'function') {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
+  if (currentComponent?.unmount) currentComponent.unmount();
   currentComponent = bindComponentToStateWithDeps('PerformanceDashboard', {}, app);
 });
 
 registerRoute('/api-demo', () => {
   const app = document.getElementById('app');
-  if (currentComponent && typeof currentComponent.unmount === 'function') {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
+  if (currentComponent?.unmount) currentComponent.unmount();
   renderComponent('APIDemo', {}, app);
 });
 
 registerRoute('/events-demo', () => {
   const app = document.getElementById('app');
-  if (currentComponent && typeof currentComponent.unmount === 'function') {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
+  if (currentComponent?.unmount) currentComponent.unmount();
   renderComponent('EventsDemo', {}, app);
 });
 
 registerRoute('/dom-utils-demo', () => {
   const app = document.getElementById('app');
-  if (currentComponent && typeof currentComponent.unmount === 'function') {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
+  if (currentComponent?.unmount) currentComponent.unmount();
   renderComponent('DOMUtilsDemo', {}, app);
 });
 
 registerRoute('/form-demo', () => {
   const app = document.getElementById('app');
-  if (currentComponent && typeof currentComponent.unmount === 'function') {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
+  if (currentComponent?.unmount) currentComponent.unmount();
   renderComponent('FormDemo', {}, app);
 });
 
 registerRoute('/icons', () => {
   const app = document.getElementById('app');
-  if (currentComponent && typeof currentComponent.unmount === 'function') {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
+  if (currentComponent?.unmount) currentComponent.unmount();
   renderComponent('IconDemo', {}, app);
 });
 
 registerRoute('/icons/:key', (route) => {
   const app = document.getElementById('app');
-  if (currentComponent && typeof currentComponent.unmount === 'function') {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
+  if (currentComponent?.unmount) currentComponent.unmount();
 
   const iconKey = route.state?.key ?? route.params.key;
   let src = ICON_SRC_MAP[iconKey];
 
   if (!src) {
     const uploads = getState('userIcons') || [];
-    const found = uploads.find(item => item.key === iconKey);
+    const found  = uploads.find(item => item.key === iconKey);
     src = found?.src || null;
   }
 
@@ -204,100 +210,23 @@ registerRoute('/icons/:key', (route) => {
   renderComponent('IconDetail', { key: iconKey, src, clicks }, app);
 });
 
-// ----------------- НОВЫЕ ДЕМО (заглушки) -----------------
-
-// registerRoute('/chat', () => {
-//   const app = document.getElementById('app');
-//   if (currentComponent && typeof currentComponent.unmount === 'function') {
-//     currentComponent.unmount();
-//     currentComponent = null;
-//   }
-//   currentComponent = bindComponentToStateWithDeps('Chat', {}, app);
-// });
-
 registerRoute('/chat', () => {
   const app = document.getElementById('app');
-  if (currentComponent && currentComponent.unmount) { currentComponent.unmount(); currentComponent = null; }
+  if (currentComponent?.unmount) currentComponent.unmount();
   currentComponent = bindComponentToStateWithDeps('Chat', {}, app);
 });
 
 registerRoute('/file-progress', () => {
   const app = document.getElementById('app');
-  if (currentComponent && currentComponent.unmount) {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
+  if (currentComponent?.unmount) currentComponent.unmount();
   currentComponent = bindComponentToStateWithDeps('FileProgressDemo', {}, app);
 });
 
-
-
-// registerRoute('/theme-switcher', () => {
-//   const app = document.getElementById('app');
-//   if (currentComponent && currentComponent.unmount) {
-//     currentComponent.unmount();
-//     currentComponent = null;
-//   }
-//   renderComponent('ThemeSwitcher', {}, app);
-// });
-
-// registerRoute('/heavy-component /lazy-demo', () => {
-//   const app = document.getElementById('app');
-//   if (currentComponent && currentComponent.unmount) {
-//     currentComponent.unmount();
-//     currentComponent = null;
-//   }
-//   renderComponent('HeavyComponent Lazy-loading', {}, app);
-// });
-
-// registerRoute('/offline-demo', () => {
-//   const app = document.getElementById('app');
-//   if (currentComponent && currentComponent.unmount) {
-//     currentComponent.unmount();
-//     currentComponent = null;
-//   }
-//   renderComponent('OfflineDemo', {}, app);
-// });
-
-// registerRoute('/undo-redo', () => {
-//   const app = document.getElementById('app');
-//   if (currentComponent && currentComponent.unmount) {
-//     currentComponent.unmount();
-//     currentComponent = null;
-//   }
-//   renderComponent('UndoRedoDemo', {}, app);
-// });
-
-// registerRoute('/validated-form', () => {
-//   const app = document.getElementById('app');
-//   if (currentComponent && currentComponent.unmount) {
-//     currentComponent.unmount();
-//     currentComponent = null;
-//   }
-//   renderComponent('ValidatedForm', {}, app);
-// });
-
-// registerRoute('/i18n-demo', () => {
-//   const app = document.getElementById('app');
-//   if (currentComponent && currentComponent.unmount) {
-//     currentComponent.unmount();
-//     currentComponent = null;
-//   }
-//   renderComponent('I18nDemo', {}, app);
-// });
-
-// registerRoute('/plugin-calendar', () => {
-//   const app = document.getElementById('app');
-//   if (currentComponent && currentComponent.unmount) {
-//     currentComponent.unmount();
-//     currentComponent = null;
-//   }
-//   renderComponent('Calendar', {}, app);
-// });
-
-
-
-// ----------------------------------------------------------
+registerRoute('/theme-switcher', () => {
+  const app = document.getElementById('app');
+  if (currentComponent?.unmount) currentComponent.unmount();
+  currentComponent = bindComponentToStateWithDeps('ThemeSwitcher', {}, app);
+});
 
 registerNotFound(() => {
   const app = document.getElementById('app');
@@ -306,12 +235,7 @@ registerNotFound(() => {
 
 window.navigateTo = function(path, event) {
   if (event) event.preventDefault();
-
-  if (currentComponent && typeof currentComponent.unmount === 'function') {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
-
+  if (currentComponent?.unmount) currentComponent.unmount();
   const app = document.getElementById('app');
   app.innerHTML = '';
   history.pushState({}, '', path);

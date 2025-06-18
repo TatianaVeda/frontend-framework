@@ -1,4 +1,7 @@
-const globalState = {};
+const globalState = {
+   themeMode: undefined,    // light|dark|custom|auto
+  customTheme: {}, 
+};
 if (globalState.iconClicks === undefined) {
   globalState.iconClicks = {};
 }

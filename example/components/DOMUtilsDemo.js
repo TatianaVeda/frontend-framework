@@ -1,5 +1,7 @@
 import { createElement, appendChild, clearChildren, setTextContent, toggleClass, setStyle, batchAppendChildren } from 'framework/dom.js';
-import { delegateEvent } from 'framework/events.js';
+//import { delegateEvent } from 'framework/events.js';
+import { delegateEvent, removeAllDelegateEvents } from 'framework/events.js';
+
 
 export function DOMUtilsDemo() {
   const listContainer = createElement('ul', { class: 'dom-list' });

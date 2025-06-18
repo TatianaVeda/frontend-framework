@@ -7,15 +7,51 @@
   .icon-item:hover img {
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   }
-  /* Обёртка для каждой иконки: задаём «заготовку» без трансформаций */
+
 .icon-wrapper {
   text-align: center;
   cursor: pointer;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
-/* При hover: масштабируем и даём тень */
+
 .icon-wrapper:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+:root {
+  --bg-color: #ffffff;
+  --text-color: #000000;
+  --btn-bg: #eeeeee;
+  --btn-text: #000000;
+}
+
+/* 2. Телo страницы */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: sans-serif;
+}
+
+/* 3. Кнопки */
+button {
+  background-color: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* 4. При наведении чуть затемняем фон кнопки */
+button:hover {
+  filter: brightness(0.9);
+}
+
+/* 5. Страницы вашего фреймворка могут иметь паддинг */
+.page {
+  padding: 1em;
 }

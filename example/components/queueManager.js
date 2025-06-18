@@ -173,6 +173,7 @@ export function QueueManager() {
 
       unmount: (node) => {
         console.info('QueueManager размонтирован', node);
+         if (!node) return;  
         if (queueSubscription) {
           unsubscribe('queue', queueSubscription);
           queueSubscription = null;

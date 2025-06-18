@@ -134,16 +134,14 @@
 // defineComponent('Chat', Chat);
 
 
-// /dot-js/frontend/dot-js/example/components/extra/Chat.js
 
 import { getState, setState, subscribe, unsubscribe } from 'framework/state.js';
 import { defineComponent } from 'framework/components.js';
 import { createElement, appendChild, setTextContent, clearChildren } from 'framework/dom.js';
 import { Config } from 'framework/config.js';
 
-// Фабрика компонента Chat
 export function Chat() {
-  // 1) Инициализируем глобальный state-поле только один раз
+
   if (getState('chatMessages') === undefined) {
     setState('chatMessages', []);
   }
@@ -151,7 +149,6 @@ export function Chat() {
     setState('chatStatus', 'connecting');
   }
 
-  // 2) Функции отрисовки
   function renderMessages() {
     const messages = getState('chatMessages') || [];
     const container = document.getElementById('messagesContainer');
@@ -177,7 +174,6 @@ export function Chat() {
     }
   }
 
-  // Функция очистки истории чата
   function clearChat() {
     setState('chatMessages', []);
   }
@@ -208,13 +204,12 @@ export function Chat() {
     ],
     lifecycle: {
       mount: (node) => {
-        // 1. Создаём или берём существующий сокет
+
         let socket = getState('chatSocket');
         if (!socket) {
           socket = io(Config.websocket.apiUrl);
           setState('chatSocket', socket);
 
-          // 2. Устанавливаем обработчики один раз при первом подключении
           socket.on('connect', () => setState('chatStatus', 'connected'));
           socket.on('disconnect', () => setState('chatStatus', 'disconnected'));
           socket.on('chat:new-message', (msg) => {
@@ -223,11 +218,9 @@ export function Chat() {
           });
         }
 
-        // 3. Подписываемся на state-обновления
         subscribe('chatMessages', renderMessages);
         subscribe('chatStatus', updateStatusUI);
 
-        // 4. Привязываем UI-обработчики
         const sendBtn = node.querySelector('#sendBtn');
         const chatInput = node.querySelector('#chatInput');
         if (sendBtn && chatInput) {
@@ -240,7 +233,6 @@ export function Chat() {
           };
           sendBtn.addEventListener('click', onSend);
 
-          // Сохраним в элементе, чтобы потом снять
           sendBtn._onSend = onSend;
         }
 
@@ -250,17 +242,14 @@ export function Chat() {
           clearBtn._onClear = clearChat;
         }
 
-        // 5. Рендерим сразу текущие данные
         renderMessages();
         updateStatusUI();
       },
 
       update: (node) => {
-        // ничего не делаем, т. к. всё рендерится на subscribe-х
       },
 
       unmount: (node) => {
-        // 6. При unmount мы только снимаем подписки и обработчики UI, НО не разрываем сокет
         unsubscribe('chatMessages', renderMessages);
         unsubscribe('chatStatus', updateStatusUI);
 
@@ -275,12 +264,10 @@ export function Chat() {
           clearBtn.removeEventListener('click', clearBtn._onClear);
           delete clearBtn._onClear;
         }
-
-        // НЕ закрываем socket.disconnect() — пусть остаётся подключённым     
+ 
       }
     }
   };
 }
 
-// Регистрируем компонент
 defineComponent('Chat', Chat);
