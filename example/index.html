@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Демонстрация Фреймворка</title>
+  <title>Frontend-framework demo</title>
   <base href="/">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon"            sizes="32x32"    href="/favicon-32x32.png">
@@ -11,8 +11,7 @@
   <link rel="manifest"                    href="/site.webmanifest">
   <link rel="shortcut icon"               href="/favicon.ico">
 
- 
-  <link rel="stylesheet" href="example/styles.css">
+  <link rel="stylesheet" href="styles.css">
 
   <!-- Import Map должен идти до импорта модулей -->
   <script type="importmap">
@@ -26,42 +25,182 @@
     
 </head>
 <body>
-  <header>
-    <h1>Демо: Фреймворк frontend-framework</h1>
-    <nav>
-      <a href="/" onclick="navigateTo('/', event)">Главная</a>
-      <a href="/time-tracker" onclick="navigateTo('/time-tracker', event)">Трекер времени</a>
-      <a href="/queue" onclick="navigateTo('/queue', event)">Управление очередью</a>
-      <a href="/performance" onclick="navigateTo('/performance', event)">Производительность</a>
-      <a href="/api-demo" onclick="navigateTo('/api-demo', event)">API Demo</a>
-      <a href="/events-demo" onclick="navigateTo('/events-demo', event)">Events Demo</a>
-      <a href="/dom-utils-demo" onclick="navigateTo('/dom-utils-demo', event)">DOM Utils Demo</a>
-      <a href="/form-demo" onclick="navigateTo('/form-demo', event)">Form Demo</a>
-      <a href="/icons" onclick="navigateTo('/icons', event)">Icons Demo</a>
-      <!-- <a href="/framework/icons" onclick="navigateTo('/framework/icons', event)">Icons Demo</a> -->
-      <a href="/weather" onclick="navigateTo('/weather', event)">Weather Widget</a>
-      <a href="/gallery" onclick="navigateTo('/gallery', event)">Image Gallery</a>
-      <a href="/chat" onclick="navigateTo('/chat', event)">WebSocket-чат</a>
-       <a href="/file-progress" onclick="navigateTo('/file-progress', event)">Загрузка с прогрессом</a>
-      <!--<a href="/theme-switcher" onclick="navigateTo('/theme-switcher', event)">Переключение темы</a>
-      <a href="/lazy-demo" onclick="navigateTo('/lazy-demo', event)">Lazy-loading</a>
-      <a href="/offline-demo" onclick="navigateTo('/offline-demo', event)">Offline-режим</a>
-      <a href="/undo-redo" onclick="navigateTo('/undo-redo', event)">Undo/Redo</a>
-      <a href="/validated-form" onclick="navigateTo('/validated-form', event)">Форма с валидацией</a>
-      <a href="/i18n-demo" onclick="navigateTo('/i18n-demo', event)">Локализация</a>
-      <a href="/plugin-calendar" onclick="navigateTo('/plugin-calendar', event)">Плагин: Календарь</a>
-       -->
-
-    </nav>
-  </header>
-  <main id="app"></main>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <button onclick="navigateTo('/api-demo')">
+        <span class="sidebar-label">🌐 API Demo</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🌐 🖼️</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/weather')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">☀️</span> Weather Widget</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🗂️ 🌐 ⚡ 🖼️ 📝</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/dom-utils-demo')">
+        <span class="sidebar-label">🖼️ DOM Utils Demo</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🖼️ ⚡</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/events-demo')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">⚡</span> Events Demo</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">⚡ 🖼️</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/time-tracker')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">⏱️</span> Time Tracker</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🗂️</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/queue')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">📋</span> Queue Manager</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🗂️ ⚡</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/performance')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">🚀</span> Performance</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🗂️</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/form-demo')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">📝</span> Form Demo</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🌐 🖼️ ⚡</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/icons')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">🎨</span> Icons Demo</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🖼️ 🗂️ ⚡</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/chat')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">💬</span> WebSocket Chat</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🗂️ 🖼️</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/file-progress')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">📁</span> Download Progress</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🌐 🗂️</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+    </aside>
+    <div class="main-content">
+      <header>
+        <div class="header-row">
+          <button class="home-btn" onclick="navigateTo('/', event)">🏠 Home</button>
+          <h1>Frontend-FrameWork Demo</h1>
+        </div>
+        <section class="modules-list-section">
+          <h2>MODULES IN USE:</h2>
+            <div class="modules-list-grid">
+            <div class="module-list-item">
+              <div class="module-header">
+                <span class="module-icon">🧩</span>
+                <span class="module-title">Components</span>
+              </div>
+              <span class="module-desc">defineComponent() — reusable components</span>
+            </div>
+            <div class="module-list-item">
+              <div class="module-header">
+                <span class="module-icon">🗂️</span>
+                <span class="module-title">State</span>
+              </div>
+              <span class="module-desc">setState()/getState()/subscribe() — state management</span>
+            </div>
+            <div class="module-list-item">
+              <div class="module-header">
+                <span class="module-icon">🧭</span>
+                <span class="module-title">Router</span>
+              </div>
+              <span class="module-desc">navigateTo() — navigation & URL management</span>
+            </div>
+            <div class="module-list-item">
+              <div class="module-header">
+                <span class="module-icon">🌐</span>
+                <span class="module-title">API</span>
+              </div>
+              <span class="module-desc">getData() — HTTP requests to external services</span>
+            </div>
+            <div class="module-list-item">
+              <div class="module-header">
+                <span class="module-icon">🖼️</span>
+                <span class="module-title">DOM</span>
+              </div>
+              <span class="module-desc">createElement()/addClass()/removeClass() — DOM manipulation</span>
+            </div>
+            <div class="module-list-item">
+              <div class="module-header">
+                <span class="module-icon">⚡</span>
+                <span class="module-title">Events</span>
+              </div>
+              <span class="module-desc">delegateEvent()/onEvent() — event delegation</span>
+            </div>
+            <div class="module-list-item">
+              <div class="module-header">
+                <span class="module-icon">📝</span>
+                <span class="module-title">Logger</span>
+              </div>
+              <span class="module-desc">Logger.info/warn/error — logging</span>
+            </div>
+            <div class="module-list-item">
+              <div class="module-header">
+                <span class="module-icon">⚙️</span>
+                <span class="module-title">Config</span>
+              </div>
+              <span class="module-desc">Config — centralized configuration</span>
+            </div>
+            <div class="module-list-item">
+              <div class="module-header">
+                <span class="module-icon">💾</span>
+                <span class="module-title">PersistentState</span>
+              </div>
+              <span class="module-desc">initPersistentState() — autosave</span>
+            </div>
+            <div class="module-list-item">
+              <div class="module-header">
+                <span class="module-icon">🛠️</span>
+                <span class="module-title">Utils</span>
+              </div>
+              <span class="module-desc">request() — advanced HTTP requests</span>
+            </div>
+          </div>
+          <br>
+          <div class="modules-legend">
+            📌 Module Key. Each component lists the modules it uses.<br>
+            Infra: structure modules are used implicitly and marked separately.
+          </div>
+        </section>
+      </header>
+      <main id="app"></main>
+    </div>
+  </div>
   <script src="/socket.io/socket.io.js"></script>
-
   <script type="module" src="example/main.js"></script>
 </body>
  <footer>
   <section class="icons-demo">
-    <h2>Наши иконки</h2>
+    <h2>Icons</h2>
     <img src="/favicon-16x16.png" alt="16×16">
     <img src="/favicon-32x32.png" alt="32×32">
     <img src="/android-chrome-192x192.png" alt="192×192">

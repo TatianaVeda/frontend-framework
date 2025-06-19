@@ -1,4 +1,4 @@
-import { Router, registerRoute, registerNotFound, navigateTo } from 'framework/router.js';
+import { registerRoute, registerNotFound, navigateTo } from 'framework/router.js';
 import { initPersistentState } from 'framework/persistentState.js';
 import { renderComponent, defineComponent, bindComponentToStateWithDeps } from 'framework/components.js';
 import { registerHooks } from 'framework/router.js';
@@ -20,7 +20,6 @@ import { FileProgressDemo } from './components/extra/FileProgressDemo.js';
 
 // Новые компоненты
 import { initWeatherWidget } from './components/WeatherWidget.js';
-import { initImageGallery } from './components/ImageGallery.js';
 
 //WORK
 
@@ -246,33 +245,6 @@ registerRoute('/weather', () => {
   app.innerHTML = '<div id="weather-widget"></div>';
   initWeatherWidget();
 });
-
-registerRoute('/gallery', () => {
-  const app = document.getElementById('app');
-  if (currentComponent && currentComponent.unmount) {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
-  initImageGallery();
-  currentComponent = bindComponentToStateWithDeps('image-gallery', {}, app);
-});
-
-registerRoute('/gallery/:id', (route) => {
-  const app = document.getElementById('app');
-  if (currentComponent && currentComponent.unmount) {
-    currentComponent.unmount();
-    currentComponent = null;
-  }
-  initImageGallery();
-  const imageId = parseInt(route.params.id);
-  import('./components/ImageGallery.js').then(({ selectImage }) => {
-    selectImage(imageId);
-    currentComponent = bindComponentToStateWithDeps('image-gallery', {}, app);
-  });
-});
-
-
-
 
 
 // registerRoute('/theme-switcher', () => {

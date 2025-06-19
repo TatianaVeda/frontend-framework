@@ -274,21 +274,21 @@ const io = new SocketIO(httpServer, {
   cors: { origin: "*" }
 });
 
-// Общий middleware → кэширование + CSP
+// Общий middleware → кэширование + CSP 
 app.use((req, res, next) => {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
   res.setHeader("Surrogate-Control", "no-store");
 
-  // CSP: разрешаем self, inline-скрипты, eval и inline-стили
+  // CSP: разрешаем self, inline-скрипты, eval и inline-стили 
   res.setHeader(
     "Content-Security-Policy",
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " +
     "style-src 'self' 'unsafe-inline';" +
-    "img-src 'self' data: https://picsum.photos https://fastly.picsum.photos https://via.placeholder.com https://jsonplaceholder.typicode.com https://images.unsplash.com https://dog.ceo https://cdn2.thecatapi.com; " +
-    "connect-src 'self' https://wttr.in https://api.unsplash.com https://pixabay.com https://picsum.photos https://jsonplaceholder.typicode.com;"
+    "img-src 'self' data: https://picsum.photos https://fastly.picsum.photos https://via.placeholder.com https://jsonplaceholder.typicode.com;" +
+    "connect-src 'self' https://wttr.in https://picsum.photos https://jsonplaceholder.typicode.com;"
   );
 
   next();
@@ -343,6 +343,16 @@ app.get("/api/big-file", (req, res) => {
 // --- API: эмуляция загрузки файла (echo) ---
 app.post("/api/upload", (req, res) => {
   res.json({ success: true, message: "Файл получен (эмуляция)" });
+});
+
+// --- Middleware для правильных MIME типов JavaScript файлов ---
+app.use((req, res, next) => {
+  if (req.path.endsWith('.js')) {
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  } else if (req.path.endsWith('.mjs')) {
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  }
+  next();
 });
 
 // --- Статика: отдача public, example, корня ---

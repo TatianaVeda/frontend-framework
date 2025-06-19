@@ -21,6 +21,8 @@ build/
 .vscode/
 *.sublime-workspace
 *.sublime-project
+example/index.backup.html
+example/styles.backup.css
 
 # Файлы системы
 .DS_Store
