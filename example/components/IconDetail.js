@@ -3,8 +3,10 @@ import { getState, setState } from 'framework/state.js';
 import { delegateEvent, removeDelegateEventsByNamespace } from 'framework/events.js';
 
 export function IconDetail({ key, src, clicks }) {
+  // Create the main container element
   const container = createElement('div');
 
+  // Create the image element with given source and alt text
   const img = createElement('img', { src, alt: key });
   setStyle(img, {
     display: 'block',
@@ -14,28 +16,35 @@ export function IconDetail({ key, src, clicks }) {
   });
   appendChild(container, img);
 
+  // Retrieve custom icon names from state (or default to key)
   const stateNames = getState('iconNames') || {};
   const displayName = stateNames[key] || key;
+  // Create and append the heading showing the icon name
   const namePara = createElement('h3');
-  setTextContent(namePara, `Имя: ${displayName}`);
+  setTextContent(namePara, `Name: ${displayName}`);
   appendChild(container, namePara);
 
+  // Create and append the paragraph showing click count
   const info = createElement('p');
-  setTextContent(info, `Иконка была нажата ${clicks} раз.`);
+  setTextContent(info, `Icon has been clicked ${clicks} times.`);
   appendChild(container, info);
 
+  // Create the "Back to list" button
   const backBtn = createElement('button');
-  setTextContent(backBtn, 'Назад к списку');
+  setTextContent(backBtn, 'Back to List');
   backBtn.dataset.action = 'go-back';
 
+  // Create the "Reset click count" button
   const resetBtn = createElement('button');
-  setTextContent(resetBtn, 'Обнулить счётчик кликов');
+  setTextContent(resetBtn, 'Reset Click Count');
   resetBtn.dataset.action = 'reset-count';
 
+  // Create the "Rename image" button
   const renameBtn = createElement('button');
-  setTextContent(renameBtn, 'Присвоить имя изображению');
+  setTextContent(renameBtn, 'Rename Image');
   renameBtn.dataset.action = 'rename';
 
+  // Wrap the buttons in a flex container
   const btnWrapper = createElement('div');
   setStyle(btnWrapper, { marginTop: '16px', display: 'flex', gap: '8px' });
   appendChild(btnWrapper, backBtn);
@@ -49,9 +58,10 @@ export function IconDetail({ key, src, clicks }) {
     children: [container],
     lifecycle: {
       mount: (node) => {
-        console.info('IconDetail смонтирован', node);
+        console.info('IconDetail mounted', node);
         const wrapper = node.querySelector('div');
 
+        // Delegate the "Back to list" button click
         delegateEvent(
           wrapper,
           'click',
@@ -61,6 +71,7 @@ export function IconDetail({ key, src, clicks }) {
           }
         );
 
+        // Delegate the "Reset click count" button click
         delegateEvent(
           wrapper,
           'click',
@@ -70,49 +81,45 @@ export function IconDetail({ key, src, clicks }) {
             allClicks[key] = 0;
             setState('iconClicks', { ...allClicks });
 
+            // Update the displayed click count immediately
             const infoNode = wrapper.querySelector('p');
             if (infoNode) {
-              setTextContent(infoNode, `Иконка была нажата 0 раз.`);
+              setTextContent(infoNode, `Icon has been clicked 0 times.`);
             }
           }
         );
 
+        // Delegate the "Rename image" button click
         delegateEvent(
           wrapper,
           'click',
           '[data-action="rename"]',
           (e) => {
             const currentNames = getState('iconNames') || {};
-            const newName = prompt('Введите новое имя для изображения:', currentNames[key] || '');
+            const newName = prompt('Enter a new name for the image:', currentNames[key] || '');
             if (newName != null) {
               const namesState = getState('iconNames') || {};
               namesState[key] = newName;
               setState('iconNames', { ...namesState });
 
+              // Update the displayed name immediately
               const nameNode = wrapper.querySelector('h3');
               if (nameNode) {
-                setTextContent(nameNode, `Имя: ${newName}`);
+                setTextContent(nameNode, `Name: ${newName}`);
               }
             }
           }
         );
       },
-      // unmount: (node) => {
-      //   console.info('IconDetail размонтирован', node);
-      //   const wrapper = node.querySelector('div');
-      //   if (wrapper) {
-      //     removeDelegateEventsByNamespace(wrapper, '');
-      //   }
-      // }
       unmount: (node) => {
-  console.info('IconDetail размонтирован', node);
-  if (!node) return;                     
-  const wrapper = node.querySelector('div');
-  if (wrapper) {
-    removeDelegateEventsByNamespace(wrapper, '');
-  }
-}
-
+        console.info('IconDetail unmounted', node);
+        if (!node) return;
+        const wrapper = node.querySelector('div');
+        if (wrapper) {
+          // Remove all delegated events in this namespace
+          removeDelegateEventsByNamespace(wrapper, '');
+        }
+      }
     }
   };
 }

@@ -1,4 +1,3 @@
-// /frontend-framework/example/components/FormDemo.js
 import { postData } from 'framework/api.js';
 import {
   createElement,
@@ -6,30 +5,35 @@ import {
   appendChild,
   clearChildren
 } from 'framework/dom.js';
-import { delegateEvent, removeAllDelegateEvents } from 'framework/events.js';  // <-- добавили removeAllDelegateEvents
+import { delegateEvent, removeAllDelegateEvents } from 'framework/events.js'; 
 
 export function FormDemo() {
+  // Determine whether to use mock or real API based on environment
   const isLive = window.location.protocol === 'http:' &&
                  window.location.hostname === 'localhost';
   const realPost = postData;
   const mockPost = async (url, body) => {
+    // Simulate network latency
     await new Promise(r => setTimeout(r, 500));
-    return { greeting: `Мок: Привет, ${body.name}!` };
+    return { greeting: `Mock: Hello, ${body.name}!` };
   };
+  // Choose the sender function
   const send = isLive ? mockPost : realPost;
 
+  // Create form elements
   const container = createElement('div');
   const input = createElement('input', {
     type: 'text',
     name: 'userName',
     id: 'userNameInput',
-    placeholder: 'Ваше имя'
+    placeholder: 'Your name'
   });
   const btn = createElement('button');
-  setTextContent(btn, 'Отправить');
+  setTextContent(btn, 'Submit');
   btn.dataset.action = 'submit-form';
   const result = createElement('p');
 
+  // Assemble form
   appendChild(container, input);
   appendChild(container, btn);
   appendChild(container, result);
@@ -40,8 +44,9 @@ export function FormDemo() {
     children: [container],
     lifecycle: {
       mount(node) {
-        console.info('FormDemo смонтирован', node);
+        console.info('FormDemo mounted', node);
         const formContainer = node.querySelector('div');
+        // Delegate click on the submit button
         delegateEvent(
           formContainer,
           'click',
@@ -49,34 +54,35 @@ export function FormDemo() {
           async () => {
             const name = input.value.trim();
             if (!name) {
-              result.textContent = 'Введите имя';
+              // Show validation message
+              result.textContent = 'Please enter a name';
               return;
             }
             clearChildren(result);
-            setTextContent(result, 'Отправляем...');
+            setTextContent(result, 'Sending...');
             try {
+              // Send the data and display the response
               const res = await send('/hello', { name });
               clearChildren(result);
-              setTextContent(result, `Сервер ответил: ${res.greeting}`);
+              setTextContent(result, `Server responded: ${res.greeting}`);
             } catch (err) {
+              // Handle errors
               clearChildren(result);
-              setTextContent(result, 'Ошибка при отправке');
+              setTextContent(result, 'Error sending request');
               console.error(err);
             }
           }
         );
       },
-      // unmount(node) {
-      //   console.info('FormDemo размонтирован', node);
-      //   const formContainer = node.querySelector('div');
-      //   removeAllDelegateEvents(formContainer, 'click');
-      // }
       unmount: (node) => {
-    if (!node) return;
-    console.info('FormDemo размонтирован', node);
-    const formContainer = node.querySelector('div');
-    if (formContainer) removeAllDelegateEvents(formContainer, 'click');
-  }
+        if (!node) return;
+        console.info('FormDemo unmounted', node);
+        const formContainer = node.querySelector('div');
+        if (formContainer) {
+          // Remove all delegated click events
+          removeAllDelegateEvents(formContainer, 'click');
+        }
+      }
     }
   };
 }
