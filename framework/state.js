@@ -2,6 +2,11 @@ const globalState = {};
 if (globalState.iconClicks === undefined) {
   globalState.iconClicks = {};
 }
+// Personal Dashboard global state initialization
+if (globalState.tasks === undefined) globalState.tasks = [];
+if (globalState.weather === undefined) globalState.weather = { city: 'Moscow', data: null };
+if (globalState.chatMessages === undefined) globalState.chatMessages = [];
+if (globalState.currentTaskId === undefined) globalState.currentTaskId = null;
 const componentStates = new Map();
 const subscribers = new Map();
 let batchUpdateQueue = null;

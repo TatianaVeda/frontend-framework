@@ -27,6 +27,13 @@
 <body>
   <div class="app-layout">
     <aside class="sidebar">
+      <button onclick="navigateTo('/dashboard')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">📊</span> Dashboard</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🧩 🗂️ 🧭 🌐 🖼️ ⚡ 📝 ⚙️ 💾 🛠️</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> All modules</span>
+        </span>
+      </button>
       <button onclick="navigateTo('/api-demo')">
         <span class="sidebar-label">🌐 API Demo</span>
         <span class="emoji-block">
@@ -62,8 +69,8 @@
           <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
         </span>
       </button>
-      <button onclick="navigateTo('/queue')">
-        <span class="sidebar-label"><span class="sidebar-demo-icon">📋</span> Queue Manager</span>
+      <button onclick="navigateTo('/task-manager')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">📋</span> Task Manager</span>
         <span class="emoji-block">
           <span class="module-emoji-list">🗂️ ⚡</span>
           <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
@@ -106,6 +113,7 @@
       </button>
     </aside>
     <div class="main-content">
+      <main id="app"></main>
       <header>
         <div class="header-row">
           <button class="home-btn" onclick="navigateTo('/', event)">🏠 Home</button>
@@ -192,7 +200,6 @@
           </div>
         </section>
       </header>
-      <main id="app"></main>
     </div>
   </div>
   <script src="/socket.io/socket.io.js"></script>

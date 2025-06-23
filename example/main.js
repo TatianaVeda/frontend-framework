@@ -6,7 +6,7 @@ import { getState, setState } from 'framework/state.js';
 import { IconDemo } from './components/IconDemo.js';
 
 import { TimeTracker } from './components/timeTracker.js';
-import { QueueManager } from './components/queueManager.js';
+import { TaskManager } from './components/queueManager.js';
 import { PerformanceDashboard } from './components/performanceDashboard.js';
 import { APIDemo } from './components/APIDemo.js';
 import { EventsDemo } from './components/EventsDemo.js';
@@ -80,7 +80,8 @@ defineComponent('Home', () => ({
 }));
 
 defineComponent('TimeTracker', TimeTracker);
-defineComponent('QueueManager', QueueManager);
+defineComponent('QueueManager', TaskManager);
+defineComponent('TaskManager', TaskManager);
 defineComponent('PerformanceDashboard', PerformanceDashboard);
 defineComponent('APIDemo', APIDemo);
 defineComponent('EventsDemo', EventsDemo);
@@ -120,13 +121,24 @@ registerRoute('/time-tracker', () => {
   renderComponent('TimeTracker', {}, app);
 });
 
+// Оставляем для обратной совместимости, но рендерим TaskManager
 registerRoute('/queue', () => {
   const app = document.getElementById('app');
   if (currentComponent && typeof currentComponent.unmount === 'function') {
     currentComponent.unmount();
     currentComponent = null;
   }
-  currentComponent = bindComponentToStateWithDeps('QueueManager', {}, app);
+  currentComponent = bindComponentToStateWithDeps('TaskManager', {}, app);
+});
+
+// Новый маршрут для Task Manager
+registerRoute('/task-manager', () => {
+  const app = document.getElementById('app');
+  if (currentComponent && typeof currentComponent.unmount === 'function') {
+    currentComponent.unmount();
+    currentComponent = null;
+  }
+  currentComponent = bindComponentToStateWithDeps('TaskManager', {}, app);
 });
 
 registerRoute('/performance', () => {
@@ -246,6 +258,70 @@ registerRoute('/weather', () => {
   initWeatherWidget();
 });
 
+// Personal Dashboard route
+registerRoute('/dashboard', () => {
+  const app = document.getElementById('app');
+  if (currentComponent && typeof currentComponent.unmount === 'function') {
+    currentComponent.unmount();
+    currentComponent = null;
+  }
+  // Grid layout for dashboard
+  app.innerHTML = `
+    
+    <section class="dashboard-checklist">
+      <h3>✅ Framework Modules in Action</h3>
+      <ul class="dashboard-modules-list">
+        <li><b>This dashboard is a showcase of the full potential of the framework. All core modules are used together in a real-world scenario.</b></li>
+        <li>🧩 <b>Components:</b> All widgets (Task Manager, Weather, Chat, Timer) are reusable components.</li>
+        <li>🗂️ <b>State:</b> All data (tasks, weather, chat, timer) is managed via global state.</li>
+        <li>💾 <b>PersistentState:</b> Your data is saved and restored automatically between sessions.</li>
+        <li>🧭 <b>Router:</b> Navigation between Dashboard, Task Manager, and other pages.</li>
+        <li>🌐 <b>API:</b> Weather widget fetches data from an external weather service.</li>
+        <li>🖼️ <b>DOM:</b> Dynamic creation and update of UI elements in all widgets.</li>
+        <li>⚡ <b>Events:</b> Event delegation for buttons and actions in Task Manager and Chat.</li>
+        <li>📝 <b>Logger:</b> Errors and important actions are logged for debugging.</li>
+        <li>⚙️ <b>Config:</b> Centralized configuration for API endpoints and app settings.</li>
+        <li>🛠️ <b>Utils:</b> Advanced HTTP requests, caching, and helpers in widgets.</li>
+      </ul>
+    </section>
+    <h1 class="dashboard-title">🏋️‍♂️ Fitness/Wellness Dashboard</h1>
+    <div id="dashboard-layout" class="dashboard-grid">
+      <section class="dashboard-zone dashboard-tasks">
+        <h2><span class="dashboard-icon">📋</span> Task Manager</h2>
+        <div class="dashboard-desc">Plan your daily or weekly exercises and track your fitness goals.</div>
+        <div id="tasks-panel"></div>
+      </section>
+      <section class="dashboard-zone dashboard-weather">
+        <h2><span class="dashboard-icon">☀️</span> Weather</h2>
+        <div class="dashboard-desc">Check the weather to plan your outdoor workouts.</div>
+        <div id="weather-panel"></div>
+      </section>
+      <section class="dashboard-zone dashboard-chat">
+        <h2><span class="dashboard-icon">💬</span> Notes & Progress</h2>
+        <div class="dashboard-desc"> Self-Check-In Chat or Daily Reflection Notes. Log your feelings, progress, motivation, and reminders.</div>
+        <div id="chat-panel"></div>
+      </section>
+      <section class="dashboard-zone dashboard-timer">
+        <h2><span class="dashboard-icon">⏱️</span> Time Tracker</h2>
+        <div class="dashboard-desc">Interval timer for workouts and tracking exercise sets.</div>
+        <div id="timetracker-panel"></div>
+      </section>
+    </div>
+  `;
+  // Weather
+  const weatherPanel = document.getElementById('weather-panel');
+  weatherPanel.innerHTML = '<div id="weather-widget"></div>';
+  initWeatherWidget();
+  // Tasks
+  const tasksPanel = document.getElementById('tasks-panel');
+  bindComponentToStateWithDeps('TaskManager', {}, tasksPanel);
+  // Chat
+  const chatPanel = document.getElementById('chat-panel');
+  bindComponentToStateWithDeps('Chat', {}, chatPanel);
+  // Time Tracker
+  const timePanel = document.getElementById('timetracker-panel');
+  bindComponentToStateWithDeps('TimeTracker', {}, timePanel);
+});
 
 // registerRoute('/theme-switcher', () => {
 //   const app = document.getElementById('app');

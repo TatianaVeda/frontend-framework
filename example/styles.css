@@ -73,7 +73,7 @@ h3 { color: #555; margin-bottom: 15px; }
   box-shadow: 0 4px 24px #0002;
 }
 .module-icon { font-size: 2.2em; margin-right: 16px; flex-shrink: 0; }
-.module-title { font-weight: bold; font-size: 1.5em; margin-bottom: 2px; color: #222; }
+.module-title { font-weight: bold; font-size: 1.8em; margin-bottom: 2px; color: #222; }
 .module-desc { color: #555; font-size: 1em; }
 
 
@@ -121,7 +121,7 @@ h3 { color: #555; margin-bottom: 15px; }
 }
 .module-list-item .module-title {
   font-weight: bold;
-  font-size: 1em;
+  font-size: 1.5em;
   color: #4a3e6c;
   margin-bottom: 0;
 }
@@ -388,4 +388,345 @@ h3 { color: #555; margin-bottom: 15px; }
   margin-bottom: 16px;
   width: 100%;
   box-sizing: border-box;
+}
+
+/* Dashboard grid layout: всегда 2 колонки (2x2), на мобильных — 1 колонка */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(400px, 1fr));
+  grid-template-rows: 1fr 1fr;
+  gap: 2.4rem;
+  padding: 0.7rem 0;
+  width: 100%;
+  max-width: 100vw;
+  margin: 0 auto 2rem auto;
+}
+@media (max-width: 600px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, auto);
+    gap: 1.2rem;
+    padding: 1rem;
+  }
+}
+.dashboard-zone {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px 0 rgba(80, 80, 120, 0.08), 0 1.5px 4px 0 rgba(80, 80, 120, 0.06);
+  padding: 0.4rem 0.4rem 0.4rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 50px;
+  min-width: 0;
+  transition: box-shadow 0.2s, background 0.2s;
+  font-size: 0.9em;
+}
+.dashboard-zone h2 {
+  font-size: 1.0rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  color: #5a4e8c;
+}
+.dashboard-icon {
+  font-size: 1.4em;
+  vertical-align: middle;
+}
+
+/* Responsive: stack on mobile */
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, auto);
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .dashboard-zone {
+    min-height: 220px;
+    padding: 1rem 0.7rem 0.7rem 0.7rem;
+  }
+}
+
+/* Стили для интеграции с главной страницей */
+.dashboard-zone, .dashboard-grid {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  background: var(--main-bg, #fff);
+}
+
+/* Стили для кнопок и инпутов внутри виджетов (унаследовано) */
+.dashboard-zone button, .dashboard-zone input, .dashboard-zone select {
+  font-family: inherit;
+  font-size: 1em;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 0.4em 0.8em;
+  margin: 0.1em 0.2em;
+  background: #f7f7fa;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.dashboard-zone button:hover {
+  background: #ece9fa;
+  box-shadow: 0 1px 4px 0 rgba(80, 80, 120, 0.08);
+}
+
+/* Для лучшего разделения — небольшие тени и отступы */
+.dashboard-zone:not(:last-child) {
+  margin-bottom: 0.5rem;
+}
+
+/* ===== USER-FRIENDLY DASHBOARD & WIDGETS STYLES ===== */
+
+/* === Единый стиль для всех кнопок приложения (только внутри контента) === */
+.page button,
+.task-manager button,
+.chat-page button,
+.time-tracker button,
+.dashboard-zone button,
+.task-actions button,
+.btn {
+  font-family: inherit;
+  font-size: 1em;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 0.45em 1.1em;
+  margin: 0.15em 0.25em;
+  background: #f7f7fa;
+  transition: background 0.15s, box-shadow 0.15s;
+  min-width: 110px;
+  max-width: 180px;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block;
+}
+.page button:hover,
+.task-manager button:hover,
+.chat-page button:hover,
+.time-tracker button:hover,
+.dashboard-zone button:hover,
+.task-actions button:hover,
+.btn:hover {
+  background: #ece9fa;
+  box-shadow: 0 1px 4px 0 rgba(80, 80, 120, 0.08);
+}
+.page button:active,
+.task-manager button:active,
+.chat-page button:active,
+.time-tracker button:active,
+.dashboard-zone button:active,
+.task-actions button:active,
+.btn:active {
+  background: #e0d7fa;
+}
+
+/* Для мобильных — кнопки на всю ширину */
+@media (max-width: 900px) {
+  .page button,
+  .task-manager button,
+  .chat-page button,
+  .time-tracker button,
+  .dashboard-zone button,
+  .task-actions button,
+  .btn {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+}
+
+/* Убрать дублирующие правила для .task-actions, .task-manager, .chat-page, .time-tracker */
+.task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  margin: 0.3em 0 0.7em 0;
+  justify-content: flex-start;
+}
+
+/* Стили для Add Task — такой же, как у остальных кнопок */
+.task-manager .add-task-btn, .task-manager button.add-task-btn {
+  min-width: 110px;
+  max-width: 180px;
+  font-size: 1em;
+  padding: 0.45em 1.1em;
+}
+
+/* Стили для специальных кнопок (например, search-btn в Weather Widget) — оставить индивидуально */
+.weather-widget .search-btn {
+  width: 44px;
+  min-width: 44px;
+  max-width: 44px;
+  padding: 0.4em 0.2em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* Удалить все правила ниже, связанные с .task-actions button, .task-manager button, .chat-page button, .time-tracker button, если они дублируют или конфликтуют с единым блоком стилей для кнопок. Оставить только индивидуальные стили для специальных кнопок. */
+
+/* Unified widget/card style for all .page and demo components */
+/* .page, .notifications, .chat-page, .form-demo, .file-progress, .queue-manager, .task-manager, .dom-utils-demo, .events-demo, .api-demo, .performance-dashboard, .time-tracker {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px 0 rgba(80, 80, 120, 0.08), 0 1.5px 4px 0 rgba(80, 80, 120, 0.06);
+  padding: 0.4rem 0.4rem 0.4rem 0.4rem;
+  margin: 1.5rem 0.5rem;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  color: #333;
+  border: none;
+  min-width: 0;
+  min-height: 70px;
+  transition: box-shadow 0.2s, background 0.2s;
+}
+
+/* Widget headers */
+.page h2, .task-manager h2, .chat-page h2, .form-demo h2, .file-progress h2, .time-tracker h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  color: #5a4e8c;
+}
+
+/* Widget buttons and inputs */
+.page button, .page input, .page select,
+.task-manager button, .task-manager input, .task-manager select,
+.chat-page button, .chat-page input, .chat-page select,
+.form-demo button, .form-demo input, .form-demo select,
+.file-progress button, .file-progress input, .file-progress select,
+.time-tracker button, .time-tracker input, .time-tracker select {
+  font-family: inherit;
+  font-size: 0.7em;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  padding: 0.3em 0.5em;
+  margin: 0.1em 0.2em;
+  background: #f7f7fa;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.page button:hover, .task-manager button:hover, .chat-page button:hover, .form-demo button:hover, .file-progress button:hover, .time-tracker button:hover {
+  background: #ece9fa;
+  box-shadow: 0 1px 4px 0 rgba(80, 80, 120, 0.08);
+}
+
+/* Responsive: stack on mobile, buttons full width */
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, auto);
+    gap: 1.2rem;
+    padding: 1rem;
+  }
+  .dashboard-zone, .page, .task-manager, .chat-page, .form-demo, .file-progress, .time-tracker {
+    min-height: 180px;
+    padding: 1rem 0.7rem 0.7rem 0.7rem;
+  }
+  .task-actions {
+    flex-direction: column;
+    gap: 0.5em;
+  }
+  .task-actions button {
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+}
+
+/* Remove double border for nested widgets */
+.dashboard-zone .page, .dashboard-zone .task-manager, .dashboard-zone .chat-page, .dashboard-zone .form-demo, .dashboard-zone .file-progress, .dashboard-zone .time-tracker {
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
+.dashboard-zone ul, .dashboard-zone ol, .dashboard-zone button, .dashboard-zone input, .dashboard-zone select,
+.page ul, .page ol, .page button, .page input, .page select {
+  margin-bottom: 0.3rem;
+}
+
+.dashboard-zone button, .page button, .task-manager button, .chat-page button, .form-demo button, .file-progress button, .time-tracker button {
+  font-size: 1em;
+  padding: 0.4em 0.4em;
+  min-width: 40px;
+  flex: 1 1 40px;
+}
+
+/* Weather Widget search button: fixed width, not stretched */
+.weather-widget .search-btn {
+  width: 44px;
+  min-width: 44px;
+  max-width: 44px;
+  padding: 0.4em 0.2em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+.weather-widget .city-input {
+  word-break: break-word;
+  white-space: pre-line;
+}
+.weather-widget textarea, .weather-widget input[type="text"] {
+  word-break: break-word;
+  white-space: pre-line;
+}
+.city-btn, .weather-widget .city-btn {
+  white-space: normal;
+  word-break: break-word;
+  padding: 6px 12px;
+  min-width: 60px;
+  max-width: 120px;
+}
+/* Для дашборда */
+.dashboard-tasks .virtual-list-container {
+  height: auto !important;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.task-item .task-actions {
+  display: flex;
+  gap: 0.5em;
+  justify-content: flex-start;
+}
+.task-item .task-actions button {
+  min-width: 90px;
+  max-width: 120px;
+  padding: 0.4em 1em;
+  font-size: 1em;
+  flex: none;
+}
+
+.task-item .task-text {
+  display: inline-block;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.task-date {
+  font-size: 1.1em;
+  color: #888;
+  margin-bottom: 0.5em;
+  font-weight: 500;
+}
+
+.task-item-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  min-height: 2.2em;
+}
+
+.task-check {
+  color: #2ecc40;
+  font-size: 1.2em;
+  margin-right: 0.5em; 
 }

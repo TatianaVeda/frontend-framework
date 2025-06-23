@@ -1,16 +1,15 @@
 import { getState, setState, subscribe, unsubscribe } from 'framework/state.js';
 
 export function TimeTracker() {
-  setState('timeElapsed', 0);
-  setState('timerInterval', null);
-
-  let interval = null;
-
+  // --- Таймер ---
   const startTimer = () => {
-    stopTimer();
+    // Очищаем предыдущий интервал, если есть
+    const prevInterval = getState('timerInterval');
+    if (prevInterval) clearInterval(prevInterval);
+
     setState('timeElapsed', 0);
     const start = Date.now();
-    interval = setInterval(() => {
+    const interval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - start) / 1000);
       setState('timeElapsed', elapsed);
     }, 1000);
@@ -28,7 +27,10 @@ export function TimeTracker() {
   const continueTimer = () => {
     if (getState('timerInterval') || getState('timeElapsed') === 0) return;
     const start = Date.now() - getState('timeElapsed') * 1000;
-    interval = setInterval(() => {
+    // Очищаем предыдущий интервал, если есть
+    const prevInterval = getState('timerInterval');
+    if (prevInterval) clearInterval(prevInterval);
+    const interval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - start) / 1000);
       setState('timeElapsed', elapsed);
     }, 1000);
@@ -38,7 +40,7 @@ export function TimeTracker() {
   const timeUpdateHandler = () => {
     const timeDisplay = document.getElementById('timeElapsed');
     if (timeDisplay) {
-      timeDisplay.textContent = `Прошло секунд: ${getState('timeElapsed')}`;
+      timeDisplay.textContent = `Elapsed seconds: ${getState('timeElapsed')}`;
     }
   };
 
@@ -48,22 +50,23 @@ export function TimeTracker() {
     tag: 'div',
     props: { class: 'time-tracker page' },
     children: [
-      { tag: 'h2', children: 'Трекер времени' },
-      { tag: 'p', props: { id: 'timeElapsed' }, children: `Прошло секунд: ${getState('timeElapsed')}` },
-      { tag: 'button', props: { id: 'startButton' }, events: { click: startTimer }, children: 'Старт' },
-      { tag: 'button', props: { id: 'stopButton' }, events: { click: stopTimer }, children: 'Стоп' },
-      { tag: 'button', props: { id: 'continueButton' }, events: { click: continueTimer }, children: 'Продолжить' }
+      { tag: 'h2', children: 'Time Tracker' },
+      { tag: 'p', props: { id: 'timeElapsed' }, children: `Elapsed seconds: ${getState('timeElapsed')}` },
+      { tag: 'button', props: { id: 'startButton' }, events: { click: startTimer }, children: 'Start' },
+      { tag: 'button', props: { id: 'stopButton' }, events: { click: stopTimer }, children: 'Stop' },
+      { tag: 'button', props: { id: 'continueButton' }, events: { click: continueTimer }, children: 'Continue' }
     ],
     lifecycle: {
       mount: (node) => {
-        console.info('TimeTracker смонтирован', node);
-        setState('timeElapsed', 0);
-        setState('timerInterval', null);
+        console.info('TimeTracker mounted', node);
+        // Инициализация только если значения не заданы
+        if (getState('timeElapsed') === undefined) setState('timeElapsed', 0);
+        if (getState('timerInterval') === undefined) setState('timerInterval', null);
       },
       update: (node) => {
         const timeDisplay = node.querySelector('#timeElapsed');
         if (timeDisplay) {
-          timeDisplay.textContent = `Прошло секунд: ${getState('timeElapsed')}`;
+          timeDisplay.textContent = `Elapsed seconds: ${getState('timeElapsed')}`;
         }
         const stopButton = node.querySelector('#stopButton');
         const continueButton = node.querySelector('#continueButton');
@@ -75,8 +78,8 @@ export function TimeTracker() {
         }
       },
       unmount: (node) => {
-        console.info('TimeTracker размонтирован', node);
-        stopTimer(); 
+        console.info('TimeTracker unmounted', node);
+        // Только отписка, не сбрасываем состояние и не останавливаем таймер
         unsubscribe('timeElapsed', timeUpdateHandler);
       }
     }

@@ -160,9 +160,12 @@ export function Chat() {
     messages.forEach((msg) => {
       const p = createElement('p');
       p.dataset.userId = msg.id;
+      const date = new Date(msg.timestamp);
+      const dateStr = date.toLocaleDateString('en-GB');
+      const timeStr = date.toLocaleTimeString();
       setTextContent(
         p,
-        `[${new Date(msg.timestamp).toLocaleTimeString()}] Пользователь: ${msg.text}`
+        `[${dateStr} ${timeStr}] User notes: ${msg.text}`
       );
       appendChild(container, p);
     });
@@ -186,7 +189,7 @@ export function Chat() {
     tag: 'div',
     props: { class: 'chat-page page' },
     children: [
-      { tag: 'h2', children: 'WebSocket-чат' },
+      { tag: 'h2', children: 'Mood & Milestone Tracker' },
       { tag: 'span', props: { id: 'chatStatus' }, children: `Статус: ${getState('chatStatus')}` },
       {
         tag: 'div',

@@ -2,141 +2,170 @@ import { VirtualList } from 'framework/components.js';
 import { getState, setState, subscribe, unsubscribe } from 'framework/state.js';
 import { delegateEvent, removeDelegateEventsByNamespace } from 'framework/events.js';
 
-let isFirstMount = true; 
+let isFirstMount = true;
 
-export function QueueManager() {
+export function TaskManager() {
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  // Initialize tasks in state (Personal Dashboard)
   if (isFirstMount) {
-    setState('queue', []);
+    if (!getState('tasks')) setState('tasks', []);
     isFirstMount = false;
   } else {
-    if (!getState('queue')) {
-      setState('queue', []);
+    if (!getState('tasks')) {
+      setState('tasks', []);
     }
   }
 
-  const addItem = () => {
-    const queue = getState('queue') || [];
-    const newItem = { id: queue.length + 1, text: `Элемент ${queue.length + 1}`, isEditing: false };
-    setState('queue', [...queue, newItem]);
+  const addTask = () => {
+    const tasks = getState('tasks') || [];
+    const newTask = { id: tasks.length + 1, text: '', isEditing: true, done: false };
+    setState('tasks', [...tasks, newTask]);
   };
 
-  const updateItem = (id, changes) => {
-    const queue = getState('queue') || [];
-    const updatedQueue = queue.map(item =>
+  const updateTask = (id, changes) => {
+    const tasks = getState('tasks') || [];
+    const updatedTasks = tasks.map(item =>
       item.id === id ? { ...item, ...changes } : { ...item, isEditing: false }
     );
-    setState('queue', updatedQueue);
+    setState('tasks', updatedTasks);
   };
 
-  const deleteItem = (id) => {
-    let queue = getState('queue') || [];
-    queue = queue.filter(item => item.id !== id);
-    queue = queue.map((item, index) => ({ ...item, id: index + 1 }));
-    setState('queue', queue);
+  const deleteTask = (id) => {
+    let tasks = getState('tasks') || [];
+    tasks = tasks.filter(item => item.id !== id);
+    tasks = tasks.map((item, index) => ({ ...item, id: index + 1 }));
+    setState('tasks', tasks);
   };
 
-  const renderVirtualQueue = (container) => {
+  const renderVirtualTasks = (container) => {
     const oldVirtual = container.querySelector('.virtual-list-container');
     const prevScrollTop = oldVirtual ? oldVirtual.scrollTop : 0;
 
     container.innerHTML = '';
 
-    const virtualQueue = VirtualList({
-      items: getState('queue'),
+    const virtualTasks = VirtualList({
+      items: getState('tasks'),
       renderItem: (item, index) => {
         const containerEl = document.createElement('div');
-        containerEl.className = 'queue-item';
+        containerEl.className = 'task-item';
+        containerEl.style.width = '100%';
+        containerEl.style.boxSizing = 'border-box';
         containerEl.dataset.id = item.id;
 
         const numberEl = document.createElement('span');
-        numberEl.textContent = `${index + 1}. `;
+        numberEl.textContent = `${index + 1}.`;
+        numberEl.style.marginRight = '0.5em';
         containerEl.appendChild(numberEl);
 
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.value = item.text;
-        input.disabled = !item.isEditing;
-        input.dataset.action = 'blur';
-        containerEl.appendChild(input);
+        if (item.isEditing) {
+          const textarea = document.createElement('textarea');
+          textarea.value = item.text;
+          textarea.rows = 2;
+          textarea.style.width = '100%';
+          textarea.style.resize = 'vertical';
+          textarea.dataset.action = 'blur';
+          textarea.onblur = (e) => {
+            if (!textarea.value.trim()) {
+              alert('Task cannot be empty!');
+              deleteTask(item.id);
+            } else {
+              updateTask(item.id, { text: textarea.value, isEditing: false });
+            }
+          };
+          containerEl.appendChild(textarea);
+        } else {
+          const row = document.createElement('div');
+          row.className = 'task-item-row';
+          if (item.done) {
+            const check = document.createElement('span');
+            check.className = 'task-check';
+            check.textContent = '✔';
+            row.appendChild(check);
+          }
+          const textEl = document.createElement('span');
+          textEl.className = 'task-text';
+          textEl.textContent = item.text || '(No description)';
+          row.appendChild(textEl);
+          containerEl.appendChild(row);
+        }
 
-        const saveButton = document.createElement('button');
-        saveButton.textContent = 'Сохранить';
-        saveButton.dataset.action = 'save';
-        containerEl.appendChild(saveButton);
+        // Actions row
+        const actionsRow = document.createElement('div');
+        actionsRow.className = 'task-actions';
+        if (!item.done) {
+          const editButton = document.createElement('button');
+          editButton.textContent = 'Edit';
+          editButton.dataset.action = 'edit';
+          actionsRow.appendChild(editButton);
 
-        const editButton = document.createElement('button');
-        editButton.textContent = 'Изменить';
-        editButton.dataset.action = 'edit';
-        containerEl.appendChild(editButton);
-
+          const doneButton = document.createElement('button');
+          doneButton.textContent = '✔ Mark as Done';
+          doneButton.dataset.action = 'done';
+          actionsRow.appendChild(doneButton);
+        }
         const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Удалить элемент';
+        deleteButton.textContent = 'Delete Task';
         deleteButton.dataset.action = 'delete';
-        containerEl.appendChild(deleteButton);
+        actionsRow.appendChild(deleteButton);
+        containerEl.appendChild(actionsRow);
 
+        if (item.done) {
+          containerEl.classList.add('done');
+        }
         return containerEl;
       },
-      itemHeight: 60,
+      itemHeight: 100,
       containerHeight: 250,
       buffer: 2
     });
 
-    virtualQueue.classList.add('virtual-list-container');
-    container.appendChild(virtualQueue);
+    virtualTasks.classList.add('virtual-list-container');
+    container.appendChild(virtualTasks);
 
-    virtualQueue.scrollTop = prevScrollTop;
+    virtualTasks.scrollTop = prevScrollTop;
   };
 
-  let queueSubscription = null;
+  let tasksSubscription = null;
 
   return {
     tag: 'div',
-    props: { class: 'queue-manager page' },
+    props: { class: 'task-manager page' },
     children: [
-      { tag: 'h2', children: 'Управление очередью' },
-      { tag: 'button', events: { click: addItem }, children: 'Добавить элемент' },
-      { tag: 'div', props: { id: 'queue-container' }, children: [] }
+      { tag: 'h2', children: 'Task Manager' },
+      { tag: 'div', props: { class: 'task-date' }, children: [`Today: ${dateStr}`] },
+      { tag: 'button', events: { click: addTask }, children: 'Add Task' },
+      { tag: 'div', props: { id: 'tasks-container' }, children: [] }
     ],
     lifecycle: {
       mount: (node) => {
-        const container = node.querySelector('#queue-container');
+        const container = node.querySelector('#tasks-container');
         if (!container) {
-          console.error('QueueManager.mount: Контейнер #queue-container не найден.');
+          console.error('TaskManager.mount: container #tasks-container not found.');
           return;
         }
 
-        renderVirtualQueue(container);
+        renderVirtualTasks(container);
 
-        queueSubscription = () => {
-          renderVirtualQueue(container);
+        tasksSubscription = () => {
+          renderVirtualTasks(container);
         };
-        subscribe('queue', queueSubscription);
+        subscribe('tasks', tasksSubscription);
 
-        delegateEvent(
-          container,
-          'click',
-          '[data-action="save"]',
-          (e) => {
-            const itemId = Number(e.target.closest('[data-id]').dataset.id);
-            const input = e.target.closest('[data-id]').querySelector('input');
-            updateItem(itemId, { text: input.value, isEditing: false });
-          },
-          { namespace: 'queue-manager' }
-        );
         delegateEvent(
           container,
           'click',
           '[data-action="edit"]',
           (e) => {
             const itemId = Number(e.target.closest('[data-id]').dataset.id);
-            const queue = getState('queue') || [];
-            const updatedQueue = queue.map(el => ({
+            const tasks = getState('tasks') || [];
+            const updatedTasks = tasks.map(el => ({
               ...el,
               isEditing: el.id === itemId
             }));
-            setState('queue', updatedQueue);
+            setState('tasks', updatedTasks);
           },
-          { namespace: 'queue-manager' }
+          { namespace: 'task-manager' }
         );
         delegateEvent(
           container,
@@ -144,42 +173,63 @@ export function QueueManager() {
           '[data-action="delete"]',
           (e) => {
             const itemId = Number(e.target.closest('[data-id]').dataset.id);
-            deleteItem(itemId);
+            deleteTask(itemId);
           },
-          { namespace: 'queue-manager' }
+          { namespace: 'task-manager' }
+        );
+        delegateEvent(
+          container,
+          'click',
+          '[data-action="done"]',
+          (e) => {
+            const itemId = Number(e.target.closest('[data-id]').dataset.id);
+            updateTask(itemId, { done: true, isEditing: false });
+          },
+          { namespace: 'task-manager' }
         );
         delegateEvent(
           container,
           'blur',
-          'input[data-action="blur"]',
+          'textarea[data-action="blur"]',
           (e) => {
             const itemId = Number(e.target.closest('[data-id]').dataset.id);
-            const input = e.target;
-            updateItem(itemId, { text: input.value, isEditing: false });
+            const textarea = e.target;
+            updateTask(itemId, { text: textarea.value, isEditing: false });
           },
-          { namespace: 'queue-manager', capture: true }
+          { namespace: 'task-manager', capture: true }
+        );
+        // Вернуть обработчик для Save (на случай, если он нужен для совместимости)
+        delegateEvent(
+          container,
+          'click',
+          '[data-action="save"]',
+          (e) => {
+            const itemId = Number(e.target.closest('[data-id]').dataset.id);
+            const textarea = e.target.closest('[data-id]').querySelector('textarea');
+            updateTask(itemId, { text: textarea.value, isEditing: false });
+          },
+          { namespace: 'task-manager' }
         );
       },
 
       update: (node) => {
-        const container = node.querySelector('#queue-container');
+        const container = node.querySelector('#tasks-container');
         if (!container) {
-          console.warn('QueueManager.update: Контейнер #queue-container не найден.');
+          console.warn('TaskManager.update: container #tasks-container not found.');
           return;
         }
-        renderVirtualQueue(container);
-      
+        renderVirtualTasks(container);
       },
 
       unmount: (node) => {
-        console.info('QueueManager размонтирован', node);
-        if (queueSubscription) {
-          unsubscribe('queue', queueSubscription);
-          queueSubscription = null;
+        console.info('TaskManager unmounted', node);
+        if (tasksSubscription) {
+          unsubscribe('tasks', tasksSubscription);
+          tasksSubscription = null;
         }
-        const container = node.querySelector('#queue-container');
+        const container = node.querySelector('#tasks-container');
         if (container) {
-          removeDelegateEventsByNamespace(container, 'queue-manager');
+          removeDelegateEventsByNamespace(container, 'task-manager');
         }
       }
     }
