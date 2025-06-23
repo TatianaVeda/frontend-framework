@@ -1,37 +1,68 @@
 import { getState, setState, subscribe, unsubscribe } from 'framework/state.js';
 
 export function TimeTracker() {
-  // Инициализируем стейт
+  // Initialize state
   setState('timeElapsed', 0);
   setState('timerInterval', null);
 
-  const MAX_SECONDS = 3600; // полная шкала — 1 час (можно менять)
-
+  const MAX_SECONDS = 3600; // 1 hour
   let interval = null;
 
-  // Функция, которая обновляет SVG и цифровой дисплей
+  // Function to update the SVG and digital display
   function updateVisual(secs) {
     const circle = document.getElementById('timerCircle');
     const text   = document.getElementById('timerText');
     if (!circle || !text) return;
 
-    // Формат MM:SS
+    // MM:SS
     const mins = String(Math.floor(secs / 60)).padStart(2, '0');
     const sec  = String(secs % 60).padStart(2, '0');
     text.textContent = `${mins}:${sec}`;
 
-    // Процент заполнения круга
+    // Update stroke-dashoffset (circle length = 2π·45)
+    const totalLen = 2 * Math.PI * 45;
     const pct = Math.min(secs, MAX_SECONDS) / MAX_SECONDS;
-    const offset = 283 * (1 - pct);
-    circle.style.strokeDashoffset = offset;
+    circle.style.strokeDashoffset = totalLen * (1 - pct);
   }
 
-  // Обработчики кнопок
+  // Start the 'Matrix' animation in the canvas
+  function startMatrixAnimation(canvas) {
+    const ctx = canvas.getContext('2d');
+    const cols = 40;
+    const fontSize = 5;
+    const drops = Array(cols).fill(0);
+    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ';
+
+    function drawMatrix() {
+      // Semi-transparent background for fading effect
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#0F0';
+      ctx.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < cols; i++) {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        const x = i * fontSize * 1.2;
+        const y = drops[i] * fontSize;
+        ctx.fillText(text, x, y);
+
+        if (y > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        } else {
+          drops[i]++;
+        }
+      }
+    }
+
+    return setInterval(drawMatrix, 50);
+  }
+
+  // Buttons
   const startTimer = () => {
     stopTimer();
     setState('timeElapsed', 0);
 
-    // Пульсация круга чтобы подчеркнуть старт
+    // pulse effect
     const circle = document.getElementById('timerCircle');
     circle && circle.classList.add('pulse');
 
@@ -44,20 +75,17 @@ export function TimeTracker() {
   };
 
   const stopTimer = () => {
-    const currentInterval = getState('timerInterval');
-    if (currentInterval) {
-      clearInterval(currentInterval);
+    const cur = getState('timerInterval');
+    if (cur) {
+      clearInterval(cur);
       setState('timerInterval', null);
     }
-    // Останавливаем пульсацию
     const circle = document.getElementById('timerCircle');
     circle && circle.classList.remove('pulse');
   };
 
   const continueTimer = () => {
     if (getState('timerInterval') || getState('timeElapsed') === 0) return;
-
-    // Возобновляем без скидывания
     const start = Date.now() - getState('timeElapsed') * 1000;
     interval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - start) / 1000);
@@ -65,60 +93,139 @@ export function TimeTracker() {
     }, 1000);
     setState('timerInterval', interval);
 
-    // Пульс при возобновлении
     const circle = document.getElementById('timerCircle');
     circle && circle.classList.add('pulse');
   };
 
-  // Подписываемся на обновления времени
-  const timeUpdateHandler = () => {
-    const secs = getState('timeElapsed');
-    updateVisual(secs);
-  };
+  // React to state changes
+  const timeUpdateHandler = () => updateVisual(getState('timeElapsed'));
   subscribe('timeElapsed', timeUpdateHandler);
 
   return {
     tag: 'div',
-    props: { class: 'time-tracker page' },
+    props: {
+      class: 'time-tracker page',
+      style: 'display:flex; flex-direction:column; align-items:center;'
+    },
     children: [
-      { tag: 'h2', children: 'Трекер времени' },
+      { tag: 'h2', children: 'Time Tracker' },
       {
         tag: 'div',
-        props: { class: 'timer-visual' },
+        props: {
+          class: 'timer-visual',
+          style: 'position:relative; width:200px; height:200px;'
+        },
         children: [
+          // Matrix canvas in the background
+          {
+            tag: 'canvas',
+            props: {
+              id: 'matrixCanvas',
+              width: 200,
+              height: 200,
+              style: 'position:absolute; top:0; left:0; border-radius:50%; background:black;'
+            }
+          },
+          // SVG overlay
           {
             tag: 'svg',
-            props: { width: 200, height: 200, viewBox: '0 0 100 100' },
+            props: {
+              width: 200,
+              height: 200,
+              viewBox: '0 0 100 100',
+              style: 'position:absolute; top:0; left:0;'
+            },
             children: [
-              { tag: 'circle', props: { cx: 50, cy: 50, r: 45, class: 'timer-bg' } },
-              { tag: 'circle', props: { cx: 50, cy: 50, r: 45, class: 'timer-fg', className: 'timer-fg', id: 'timerCircle' } },
-              { tag: 'text', props: { x: 50, y: 55, 'text-anchor': 'middle', class: 'timer-text', id: 'timerText' }, children: '00:00' }
+              // 1) Outer purple circle (radius 45)
+              {
+                tag: 'circle',
+                props: {
+                  cx: 50,
+                  cy: 50,
+                  r: 45,
+                  fill: 'none',
+                  stroke: 'purple',
+                  'stroke-width': 5
+                }
+              },
+              // 2) Pulsar: same radius (45), orange, on top of purple
+              {
+                tag: 'circle',
+                props: {
+                  cx: 50,
+                  cy: 50,
+                  r: 45,
+                  id: 'timerCircle',
+                  class: 'pulse',
+                  fill: 'none',
+                  stroke: 'orange',
+                  'stroke-width': 6,
+                  'stroke-linecap': 'round',
+                  // path length = 2πr
+                  'stroke-dasharray': 2 * Math.PI * 45,
+                  'stroke-dashoffset': 2 * Math.PI * 45,
+                  // rotate to start at 12 o'clock
+                  transform: 'rotate(-90 50 50)'
+                }
+              },
+              // 3) White rectangle behind the text
+              {
+                tag: 'rect',
+                props: {
+                  x: 25,
+                  y: 42,
+                  width: 50,
+                  height: 16,
+                  fill: 'white',
+                  rx: 2,
+                  ry: 2
+                }
+              },
+              // 4) Timer text in purple
+              {
+                tag: 'text',
+                props: {
+                  x: 50,
+                  y: 55,
+                  'text-anchor': 'middle',
+                  fill: 'purple',
+                  'font-family': 'monospace',
+                  'font-size': '12px',
+                  id: 'timerText'
+                },
+                children: '00:00'
+              }
             ]
           }
         ]
       },
-      { tag: 'button', props: { id: 'startButton' }, events: { click: startTimer }, children: 'Старт' },
-      { tag: 'button', props: { id: 'stopButton' }, events: { click: stopTimer }, children: 'Стоп' },
-      { tag: 'button', props: { id: 'continueButton' }, events: { click: continueTimer }, children: 'Продолжить' }
+      { tag: 'button', props: { id: 'startButton' }, events: { click: startTimer }, children: 'Start' },
+      { tag: 'button', props: { id: 'stopButton' },  events: { click: stopTimer }, children: 'Stop' },
+      { tag: 'button', props: { id: 'continueButton' }, events: { click: continueTimer }, children: 'Continue' }
     ],
     lifecycle: {
       mount: (node) => {
-        console.info('TimeTracker смонтирован', node);
+        console.info('TimeTracker mounted', node);
         setState('timeElapsed', 0);
         setState('timerInterval', null);
-        updateVisual(0);
+        // first render
+        setTimeout(() => updateVisual(0), 0);
+
+        // Start 'Matrix' animation
+        const canvas = node.querySelector('#matrixCanvas');
+        node._matrixInterval = startMatrixAnimation(canvas);
       },
       update: (node) => {
-        // Обновляем кнопки
         const stopBtn = node.querySelector('#stopButton');
         const contBtn = node.querySelector('#continueButton');
         if (stopBtn) stopBtn.disabled = !getState('timerInterval');
         if (contBtn) contBtn.disabled = !!getState('timerInterval') || getState('timeElapsed') === 0;
       },
       unmount: (node) => {
-        console.info('TimeTracker размонтирован', node);
+        console.info('TimeTracker unmounted', node);
         stopTimer();
         unsubscribe('timeElapsed', timeUpdateHandler);
+        clearInterval(node._matrixInterval);
       }
     }
   };

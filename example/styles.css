@@ -193,12 +193,12 @@ button:disabled {
   margin: 1rem 0;
 }
 .timer-bg {
-  fill: none;
-  stroke: var(--btn-bg);
+  /* fill: none;
+  stroke: var(--btn-bg); */
   stroke-width: 10;
 }
 .timer-fg {
-  fill: none;
+  /* fill: none; */
   stroke: var(--btn-text);
   stroke-width: 10;
   stroke-linecap: round;

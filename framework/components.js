@@ -26,13 +26,9 @@ function changed(v1, v2) {
   );
 }
 
-/**
- * Renders a virtual node (vnode) to a real DOM node.
- *
- * @param {object|string|Node} vnode
- * @returns {Node}
- */
-export function renderVNode(vnode) {
+export function renderVNode(vnode, isInSvg = false) {
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+
   // Text node
   if (typeof vnode === "string") {
     return document.createTextNode(vnode);
@@ -41,37 +37,52 @@ export function renderVNode(vnode) {
   if (vnode instanceof Node) {
     return vnode;
   }
-  // Element node
-  const el = document.createElement(vnode.tag);
+
+  // Element node: выбираем namespace
+  let el;
+  if (vnode.tag === 'svg') {
+    el = document.createElementNS(SVG_NS, 'svg');
+    isInSvg = true;
+  } else if (isInSvg) {
+    el = document.createElementNS(SVG_NS, vnode.tag);
+  } else {
+    el = document.createElement(vnode.tag);
+  }
+
+  // data-key
   if (vnode.key != null) {
     el.setAttribute("data-key", vnode.key);
   }
-  // Set properties/attributes
+
+  // Props / атрибуты (включая class через setAttribute)
   if (vnode.props) {
-    Object.entries(vnode.props).forEach(([key, value]) => {
-      if (key === 'class') {
-        el.className = value;
-      } else {
-        el.setAttribute(key, value);
-      }
+    Object.entries(vnode.props).forEach(([attr, value]) => {
+      el.setAttribute(attr, value);
     });
   }
-  // Attach event listeners
+
+  // Слушатели событий
   if (vnode.events) {
     Object.entries(vnode.events).forEach(([eventName, handler]) => {
       el.addEventListener(eventName, handler);
     });
   }
-  // Render children
+
+  // Дети
   let children = vnode.children;
   if (children != null && !Array.isArray(children)) {
     children = [children];
   }
-  if (children && children.length > 0) {
-    children.forEach(child => el.appendChild(renderVNode(child)));
+  if (Array.isArray(children)) {
+    children.forEach(child => {
+      const childNode = renderVNode(child, isInSvg);
+      el.appendChild(childNode);
+    });
   }
+
   return el;
 }
+
 
 let pendingBatchUpdates = [];
 let isBatchScheduled = false;
