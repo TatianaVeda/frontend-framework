@@ -7,7 +7,7 @@ export function APIDemo() {
 
   const fetchData = async () => {
     clearChildren(resultContainer);
-    setTextContent(resultContainer, 'Загрузка данных...');
+    setTextContent(resultContainer, 'Loading data...');
 
     try {
       const data = await getData('/api/proxy-todo');
@@ -17,7 +17,7 @@ export function APIDemo() {
       appendChild(resultContainer, pre);
     } catch (err) {
       clearChildren(resultContainer);
-      setTextContent(resultContainer, 'Ошибка при получении данных.');
+      setTextContent(resultContainer, 'Error fetching data.');
       console.error('APIDemo fetchData error:', err);
     }
   };
@@ -26,22 +26,22 @@ export function APIDemo() {
     tag: 'div',
     props: { class: 'api-demo page' },
     children: [
-      { tag: 'h2', children: 'Демонстрация API-запросов' },
+      { tag: 'h2', children: 'Demo of API requests' },
       {
         tag: 'button',
         props: { id: 'fetchButton' },
         events: { click: fetchData },
-        children: 'Выполнить GET-запрос'
+        children: 'Execute GET request'
       },
       { tag: 'div', props: { id: 'resultContainer' }, children: [resultContainer] }
     ],
     lifecycle: {
       mount: (node) => {
-        console.info('APIDemo смонтирован', node);
+        console.info('APIDemo mounted', node);
       },
       update: (node) => {},
       unmount: (node) => {
-        console.info('APIDemo размонтирован', node);
+        console.info('APIDemo unmounted', node);
       }
     }
   };

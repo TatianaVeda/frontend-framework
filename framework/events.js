@@ -46,7 +46,7 @@ export function delegateEvent(parent, eventType, selector, handler, options = {}
         }
       }
     } catch (err) {
-      console.error(`Ошибка в обработчике события ${eventType}:`, err);
+      console.error(`Error in event handler ${eventType}:`, err);
     }
   }
 
@@ -162,7 +162,7 @@ export const EventBus = {
       try {
         handler(data);
       } catch (err) {
-        console.error(`Ошибка в обработчике события ${eventName}:`, err);
+        console.error(`Error in event handler ${eventName}:`, err);
       }
     });
   }
@@ -195,7 +195,7 @@ export function onEvent(eventType, selector, handler, options = {}) {
           try {
             handler(event);
           } catch (err) {
-            console.error(`Ошибка в глобальном обработчике ${eventType}:`, err);
+            console.error(`Error in global event handler ${eventType}:`, err);
           }
         }
       });
@@ -211,3 +211,10 @@ export function offEvent(eventType, selector) {
     globalEventRegistry.set(eventType, handlers.filter(item => item.selector !== selector));
   }
 }
+
+const MODE_LABELS = {
+  light:  '🌞 Light',
+  dark:   '🌙 Dark',
+  custom: '🎨 Custom',
+  auto:   '🌓 Auto'
+};

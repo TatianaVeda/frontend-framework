@@ -7,7 +7,7 @@ import {  setTextContent } from 'framework/dom.js';
 import { defineComponent } from 'framework/components.js';
 
 export function FileProgressDemo() {
-  // Инициализируем прогресс в state
+  // Initialize progress in state
   if (getState('downloadProgress') === undefined) {
     setState('downloadProgress', 0);
   }
@@ -15,7 +15,7 @@ export function FileProgressDemo() {
     setState('uploadProgress', 0);
   }
 
-  // Функции для обновления прогресс-баров
+  // Functions to update progress bars
   function updateDownloadBar() {
     const percent = getState('downloadProgress');
     const bar = document.querySelector('#downloadProgressBar .bar');
@@ -24,7 +24,7 @@ export function FileProgressDemo() {
       bar.style.width = `${percent}%`;
     }
     if (text) {
-      setTextContent(text, `Скачано: ${percent}%`);
+      setTextContent(text, `Downloaded: ${percent}%`);
     }
   }
 
@@ -36,7 +36,7 @@ export function FileProgressDemo() {
       bar.style.width = `${percent}%`;
     }
     if (text) {
-      setTextContent(text, `Загружено: ${percent}%`);
+      setTextContent(text, `Uploaded: ${percent}%`);
     }
   }
 
@@ -44,14 +44,14 @@ export function FileProgressDemo() {
     tag: 'div',
     props: { class: 'file-progress page' },
     children: [
-      { tag: 'h2', children: 'Загрузка файлов с прогрессом' },
+      { tag: 'h2', children: 'File upload with progress' },
 
-      // Раздел для скачивания
+      // Download section
       {
         tag: 'div',
         props: { id: 'downloadSection', style: 'margin-top: 16px;' },
         children: [
-          { tag: 'button', props: { id: 'downloadBtn' }, children: 'Скачать большой файл' },
+          { tag: 'button', props: { id: 'downloadBtn' }, children: 'Download big file' },
           {
             tag: 'div',
             props: {
@@ -68,11 +68,11 @@ export function FileProgressDemo() {
               }
             ]
           },
-          { tag: 'div', props: { id: 'downloadProgressText', style: 'margin-top:4px;' }, children: 'Скачано: 0%' }
+          { tag: 'div', props: { id: 'downloadProgressText', style: 'margin-top:4px;' }, children: 'Downloaded: 0%' }
         ]
       },
 
-      // Раздел для загрузки
+      // Upload section
       {
         tag: 'div',
         props: { id: 'uploadSection', style: 'margin-top: 24px;' },
@@ -97,13 +97,13 @@ export function FileProgressDemo() {
               }
             ]
           },
-          { tag: 'div', props: { id: 'uploadProgressText', style: 'margin-top:4px;' }, children: 'Загружено: 0%' }
+          { tag: 'div', props: { id: 'uploadProgressText', style: 'margin-top:4px;' }, children: 'Uploaded: 0%' }
         ]
       }
     ],
     lifecycle: {
       mount: (node) => {
-        // Обработчик для скачивания файла
+        // Download handler
         const downloadBtn = node.querySelector('#downloadBtn');
         if (downloadBtn) {
           downloadBtn.addEventListener('click', () => {
@@ -128,7 +128,7 @@ export function FileProgressDemo() {
           });
         }
 
-        // Обработчик для загрузки файла
+        // Upload handler
         const uploadInput = node.querySelector('#uploadInput');
         if (uploadInput) {
           uploadInput.addEventListener('change', (e) => {
@@ -136,7 +136,7 @@ export function FileProgressDemo() {
             if (!file) return;
             setState('uploadProgress', 0);
             postData('/api/upload', file, {
-              transformData: (data) => data, // отправляем как Blob
+              transformData: (data) => data, // send as Blob
               uploadProgressCb: (loaded, total) => {
                 const percent = total ? Math.round((loaded / total) * 100) : 0;
                 setState('uploadProgress', percent);
@@ -151,17 +151,17 @@ export function FileProgressDemo() {
           });
         }
 
-        // Подписываемся на изменения прогресса
+        // Subscribe to progress changes
         subscribe('downloadProgress', updateDownloadBar);
         subscribe('uploadProgress', updateUploadBar);
 
-        // Отрисовываем начальные значения
+        // Render initial values
         updateDownloadBar();
         updateUploadBar();
       },
 
       update: (node) => {
-        // Обновление прогресс-баров уже происходит через subscribe
+        // Progress bars are updated via subscribe
       },
 
       unmount: (node) => {
@@ -172,5 +172,5 @@ export function FileProgressDemo() {
   };
 }
 
-// Регистрируем компонент
+// Register component
 defineComponent('FileProgressDemo', FileProgressDemo);

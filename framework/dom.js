@@ -24,7 +24,7 @@ export function createElement(tagName, attributes = {}) {
   
   export function clearChildren(parent) {
     if (!parent) {
-      console.error('Элемент не найден. Проверьте, передаете ли вы правильный элемент.');
+      console.error('Element not found. Check if you are passing the correct element.');
       return;
     }
     while (parent.firstChild) {
@@ -34,7 +34,7 @@ export function createElement(tagName, attributes = {}) {
   
   export function setTextContent(element, text) {
     if (!element) {
-      console.error('Элемент не найден. Проверьте, передаете ли вы правильный элемент.');
+      console.error('Element not found. Check if you are passing the correct element.');
       return;
     }
     element.textContent = text;
@@ -70,7 +70,7 @@ export function createElement(tagName, attributes = {}) {
   
   export function batchAppendChildren(parent, children = []) {
     if (!parent) {
-      console.error('Элемент-родитель не найден для batchAppendChildren.');
+      console.error('Parent element not found for batchAppendChildren.');
       return;
     }
     const fragment = document.createDocumentFragment();
@@ -82,7 +82,7 @@ export function createElement(tagName, attributes = {}) {
   
   export function batchReplaceChildren(parent, newChildren = []) {
     if (!parent) {
-      console.error('Элемент-родитель не найден для batchReplaceChildren.');
+      console.error('Parent element not found for batchReplaceChildren.');
       return;
     }
 

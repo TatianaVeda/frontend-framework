@@ -12,12 +12,12 @@ function loadState() {
       Object.keys(parsedState).forEach(key => {
         setState(key, parsedState[key]);
       });
-      console.info('PersistentState: Загружено сохраненное состояние.');
+      console.info('PersistentState: Loaded saved state.');
     } else {
-      console.info('PersistentState: Сохраненное состояние не найдено, используются значения по умолчанию.');
+      console.info('PersistentState: Saved state not found, using default values.');
     }
   } catch (err) {
-    console.error('PersistentState: Ошибка загрузки состояния из localStorage:', err);
+    console.error('PersistentState: Error loading state from localStorage:', err);
   }
 }
 
@@ -35,9 +35,9 @@ let currentState = {};
 const saveStateDebounced = debounce((state) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    console.info('PersistentState: Состояние сохранено.');
+    console.info('PersistentState: State saved.');
   } catch (err) {
-    console.error('PersistentState: Ошибка при сохранении состояния:', err);
+    console.error('PersistentState: Error saving state:', err);
   }
 }, 300);
 
@@ -50,7 +50,7 @@ const saveStateDebounced = debounce((state) => {
 //     const stored = localStorage.getItem(STORAGE_KEY);
 //     currentState = stored ? JSON.parse(stored) : {};
 //   } catch (err) {
-//     console.error('PersistentState: Ошибка чтения состояния из localStorage:', err);
+//     console.error('PersistentState: Error reading state from localStorage:', err);
 //     currentState = {};
 //   }
 
@@ -68,12 +68,12 @@ function initPersistentState() {
     const stored = localStorage.getItem(STORAGE_KEY);
     currentState = stored ? JSON.parse(stored) : {};
   } catch (err) {
-    console.error('PersistentState: Ошибка чтения состояния из localStorage:', err);
+    console.error('PersistentState: Error reading state from localStorage:', err);
     currentState = {};
   }
 
   subscribe('*', (change) => {
-    // Не сохраняем объекты сокета в persistent state
+    // Do not save socket objects in persistent state
     if (change.key === 'chatSocket') return;
 
     currentState[change.key] = change.value;

@@ -3,7 +3,7 @@ import { getState, setState, subscribe, unsubscribe } from 'framework/state.js';
 export function TimeTracker() {
   // --- Таймер ---
   const startTimer = () => {
-    // Очищаем предыдущий интервал, если есть
+    // Clear previous interval, if any
     const prevInterval = getState('timerInterval');
     if (prevInterval) clearInterval(prevInterval);
 
@@ -27,7 +27,7 @@ export function TimeTracker() {
   const continueTimer = () => {
     if (getState('timerInterval') || getState('timeElapsed') === 0) return;
     const start = Date.now() - getState('timeElapsed') * 1000;
-    // Очищаем предыдущий интервал, если есть
+    // Clear previous interval, if any
     const prevInterval = getState('timerInterval');
     if (prevInterval) clearInterval(prevInterval);
     const interval = setInterval(() => {
@@ -59,7 +59,7 @@ export function TimeTracker() {
     lifecycle: {
       mount: (node) => {
         console.info('TimeTracker mounted', node);
-        // Инициализация только если значения не заданы
+        // Initialize only if values are not set
         if (getState('timeElapsed') === undefined) setState('timeElapsed', 0);
         if (getState('timerInterval') === undefined) setState('timerInterval', null);
       },
@@ -79,7 +79,7 @@ export function TimeTracker() {
       },
       unmount: (node) => {
         console.info('TimeTracker unmounted', node);
-        // Только отписка, не сбрасываем состояние и не останавливаем таймер
+        // Only unsubscribe, do not reset state and do not stop timer
         unsubscribe('timeElapsed', timeUpdateHandler);
       }
     }

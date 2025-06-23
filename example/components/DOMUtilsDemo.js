@@ -16,7 +16,7 @@ export function DOMUtilsDemo() {
     for (let i = 1; i <= count; i++) {
       const li = createElement('li');
       
-      setTextContent(li, `Обновление #${updateCount} – Элемент ${i}`);
+      setTextContent(li, `Update #${updateCount} – Element ${i}`);
       li.setAttribute('data-index', i);
       
       toggleClass(li, 'highlight', i % 2 === 0);
@@ -40,13 +40,13 @@ export function DOMUtilsDemo() {
     setTimeout(() => {
       if (items[0]) {
         items[0].removeAttribute('data-index');
-        console.info('Удалён data-index у первого элемента');
+        console.info('Removed data-index from the first element');
       }
     }, 2000);
   };
 
   const updateButton = createElement('button', { id: 'updateListBtn' });
-  setTextContent(updateButton, 'Обновить список');
+  setTextContent(updateButton, 'Update list');
 
   updateButton.dataset.action = 'update-list';
 
@@ -57,24 +57,24 @@ export function DOMUtilsDemo() {
     tag: 'div',
     props: { class: 'dom-utils-demo page' },
     children: [
-      { tag: 'h2', children: 'Демонстрация расширенных возможностей DOM-утилит' },
+      { tag: 'h2', children: 'Demo of extended DOM-utils capabilities' },
       { tag: 'div', props: { id: 'domDemoContainer' }, children: [updateButton, listContainer] }
     ],
     lifecycle: {
       mount: (node) => {
-        console.info('DOMUtilsDemo смонтирован', node);
+        console.info('DOMUtilsDemo mounted', node);
 
         const container = node.querySelector('#domDemoContainer');
         delegateEvent(container, 'click', '[data-action="update-list"]', () => {
           renderList();
         });
         delegateEvent(container, 'click', '[data-action="click-item"]', (e) => {
-          console.info(`Клик по элементу с data-index: ${e.target.dataset.index}`);
+          console.info(`Click on element with data-index: ${e.target.dataset.index}`);
         });
       },
       update: (node) => {},
       unmount: (node) => {
-        console.info('DOMUtilsDemo размонтирован', node);
+        console.info('DOMUtilsDemo unmounted', node);
         removeAllDelegateEvents(node.querySelector('#domDemoContainer'), 'click');
       }
     }

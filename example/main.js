@@ -14,11 +14,11 @@ import { DOMUtilsDemo } from './components/DOMUtilsDemo.js';
 import { FormDemo } from './components/FormDemo.js';
 import { IconDetail } from './components/IconDetail.js';
 
-// Импорт новых компонентов (пусть они лежат, например, в папке example/components/extra/)
+// Import new components (let them be, for example, in the example/components/extra/ folder)
 import { Chat } from './components/extra/Chat.js';
 import { FileProgressDemo } from './components/extra/FileProgressDemo.js';
 
-// Новые компоненты
+// New components
 import { initWeatherWidget } from './components/WeatherWidget.js';
 
 //WORK
@@ -29,9 +29,9 @@ import { initWeatherWidget } from './components/WeatherWidget.js';
 // import { UndoRedoDemo } from './components/extra/UndoRedoDemo.js';
 // import { ValidatedForm } from './components/extra/ValidatedForm.js';
 // import { I18nDemo } from './components/extra/I18nDemo.js';
-// import { Calendar } from 'framework/plugins/calendar.js'; // если плагин оттуда
+// import { Calendar } from 'framework/plugins/calendar.js'; // if plugin is there
 
-// Инициализация persistent state для сохранения состояния между сессиями
+// Initialize persistent state for saving state between sessions
 initPersistentState();
 
 const ICON_SRC_MAP = {
@@ -49,14 +49,14 @@ registerHooks('/queue', {
     const existing = getState('queue');
     if (!Array.isArray(existing) || existing.length === 0) {
       setState('queue', [
-        { id: 1, text: 'Автоэлемент 1', isEditing: false },
-        { id: 2, text: 'Автоэлемент 2', isEditing: false }
+        { id: 1, text: 'Auto element 1', isEditing: false },
+        { id: 2, text: 'Auto element 2', isEditing: false }
       ]);
     }
     return true;
   },
   afterLeave: () => {
-    console.info('Покидаем страницу очереди');
+    console.info('Leaving queue page');
   }
 });
 
@@ -64,17 +64,17 @@ defineComponent('Home', () => ({
   tag: 'div',
   props: { class: 'page' },
   children: [
-    { tag: 'h2', children: 'Добро пожаловать!' },
+    { tag: 'h2', children: 'Welcome!' },
     {
       tag: 'button',
       events: {
         click: (event) => {
           const msgs = getState('notifications') || [];
-          setState('notifications', [...msgs, 'Новая нотификация из Home']);
+          setState('notifications', [...msgs, 'New notification from Home']);
           window.navigateTo('/events-demo', event);
         }
       },
-      children: 'Добавить уведомление и перейти'
+      children: 'Add notification and go'
     }
   ]
 }));
@@ -90,7 +90,7 @@ defineComponent('FormDemo', FormDemo);
 defineComponent('IconDemo', IconDemo);
 defineComponent('IconDetail', IconDetail);
 
-// Регистрируем каждый новый компонент
+// Register each new component
 defineComponent('Chat', Chat);
 defineComponent('FileProgressDemo', FileProgressDemo);
 //WORK
@@ -121,7 +121,7 @@ registerRoute('/time-tracker', () => {
   renderComponent('TimeTracker', {}, app);
 });
 
-// Оставляем для обратной совместимости, но рендерим TaskManager
+// Keep for backward compatibility, but render TaskManager
 registerRoute('/queue', () => {
   const app = document.getElementById('app');
   if (currentComponent && typeof currentComponent.unmount === 'function') {
@@ -131,7 +131,7 @@ registerRoute('/queue', () => {
   currentComponent = bindComponentToStateWithDeps('TaskManager', {}, app);
 });
 
-// Новый маршрут для Task Manager
+// New route for Task Manager
 registerRoute('/task-manager', () => {
   const app = document.getElementById('app');
   if (currentComponent && typeof currentComponent.unmount === 'function') {
@@ -212,7 +212,7 @@ registerRoute('/icons/:key', (route) => {
   }
 
   if (!src) {
-    app.innerHTML = '<h2>Иконка не найдена</h2>';
+    app.innerHTML = '<h2>Icon not found</h2>';
     return;
   }
 
@@ -246,14 +246,14 @@ registerRoute('/file-progress', () => {
   currentComponent = bindComponentToStateWithDeps('FileProgressDemo', {}, app);
 });
 
-// Новые маршруты
+// New routes
 registerRoute('/weather', () => {
   const app = document.getElementById('app');
   if (currentComponent && currentComponent.unmount) {
     currentComponent.unmount();
     currentComponent = null;
   }
-  // Создаем контейнер для виджета погоды
+  // Create container for weather widget
   app.innerHTML = '<div id="weather-widget"></div>';
   initWeatherWidget();
 });
@@ -392,7 +392,7 @@ registerRoute('/dashboard', () => {
 
 registerNotFound(() => {
   const app = document.getElementById('app');
-  app.innerHTML = '<h2>Страница не найдена</h2>';
+  app.innerHTML = '<h2>Page not found</h2>';
 });
 
 window.navigateTo = function(path, event) {

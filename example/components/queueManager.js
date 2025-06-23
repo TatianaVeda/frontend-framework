@@ -198,7 +198,7 @@ export function TaskManager() {
           },
           { namespace: 'task-manager', capture: true }
         );
-        // Вернуть обработчик для Save (на случай, если он нужен для совместимости)
+        // Return handler for Save (in case it is needed for backward compatibility)
         delegateEvent(
           container,
           'click',

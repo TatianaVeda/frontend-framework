@@ -1,6 +1,6 @@
 // /dot-js/frontend/dot-js/framework/utils/request.js
 
-import Logger from '../logger.js'; // убедитесь, что Logger импортируется, если используется
+import Logger from '../logger.js'; // make sure Logger is imported, if used
 export const memoryCache = new Map();
 
 const circuitState = {
@@ -25,12 +25,12 @@ export async function request(endpoint, method, data = null, options = {}) {
     onError,
     metricsLabel,
     circuitBreaker,
-    progressCb,         // для прогресса при скачивании (GET)
-    uploadProgressCb,   // новая опция для прогресса при загрузке (POST/PUT)
+    progressCb,         // for progress when downloading (GET)
+    uploadProgressCb,   // new option for progress when uploading (POST/PUT)
     ...fetchOptions
   } = options;
 
-  // 1. Собираем query-string
+  // 1. Collect query-string
   if (params) {
     const qs = new URLSearchParams(params).toString();
     endpoint += endpoint.includes('?') ? '&' + qs : '?' + qs;
@@ -49,7 +49,7 @@ export async function request(endpoint, method, data = null, options = {}) {
     }
   }
 
-  // 3. Проверяем кеш
+  // 3. Check cache
   if (cacheKey && memoryCache.has(cacheKey)) {
     return memoryCache.get(cacheKey);
   }
@@ -62,17 +62,17 @@ export async function request(endpoint, method, data = null, options = {}) {
     return fb;
   }
 
-  // 5. Настраиваем AbortController (таймаут)
+  // 5. Configure AbortController (timeout)
   const controller = new AbortController();
   if (timeout > 0) {
     setTimeout(() => controller.abort(), timeout);
   }
 
-  // 6. Собираем fetch-конфиг
+  // 6. Collect fetch-config
   const config = {
     method,
     headers: {
-      // Для обычных запросов JSON, но в случае upload мы переопределим ниже
+      // For regular JSON requests, but in case of upload we will redefine below
       'Content-Type': data && !(data instanceof Blob) ? 'application/json' : undefined,
       ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {}),
       ...(options.requestId ? { 'X-Request-Id': options.requestId } : {}),
@@ -87,20 +87,20 @@ export async function request(endpoint, method, data = null, options = {}) {
     ...fetchOptions,
   };
 
-  // 7. Если это POST/PUT и передаём Blob, то сами отсылаем порциями:
+  // 7. If this is POST/PUT and we are sending Blob, then we send it in chunks:
   const isUpload = uploadProgressCb && (method.toUpperCase() === 'POST' || method.toUpperCase() === 'PUT');
   if (isUpload && data instanceof Blob) {
-    // Запускаем «разбиение» на чанки и отправку
+    // Start «splitting» into chunks and sending
     const total = data.size;
     let uploaded = 0;
-    const chunkSize = Math.ceil(total / 20); // разобьём на 20 chunков
+    const chunkSize = Math.ceil(total / 20); // split into 20 chunks
     for (let start = 0; start < total; start += chunkSize) {
       const slice = data.slice(start, start + chunkSize);
-      // Отправляем только тело без JSON.stringify
+      // Send only the body without JSON.stringify
       await fetch(endpoint, {
         method,
         headers: {
-          // сохраняем остальные заголовки (например, Authorization), но не Content-Type
+          // save other headers (e.g. Authorization), but not Content-Type
           ...config.headers,
           'Content-Type': slice.type || 'application/octet-stream'
         },
@@ -111,14 +111,14 @@ export async function request(endpoint, method, data = null, options = {}) {
       try {
         uploadProgressCb(uploaded, total);
       } catch (hookErr) {
-        Logger.warn('Ошибка в uploadProgressCb:', hookErr);
+        Logger.warn('Error in uploadProgressCb:', hookErr);
       }
     }
-    // По завершении «загрузки чанками» возвращаем простой объект
+    // After «chunking» is complete, return a simple object
     return { success: true };
   }
 
-  // 8. Если у нас метод !== GET и не Blob, то сериализуем JSON
+  // 8. If method !== GET and not Blob, then serialize JSON
   let payload = null;
   if (data !== null && method.toUpperCase() !== 'GET') {
     const toSend = transformData ? transformData(data) : data;
@@ -126,12 +126,12 @@ export async function request(endpoint, method, data = null, options = {}) {
     config.body = JSON.stringify(payload);
   }
 
-  // 9. onRequest-хук
+  // 9. onRequest-hook
   if (typeof onRequest === 'function') {
     try {
       onRequest(config, endpoint);
     } catch (hookErr) {
-      Logger.warn('Ошибка в onRequest-хуке:', hookErr);
+      Logger.warn('Error in onRequest-hook:', hookErr);
     }
   }
 
@@ -139,7 +139,7 @@ export async function request(endpoint, method, data = null, options = {}) {
     console.time(`Request ${metricsLabel}`);
   }
 
-  // 10. Функция-попытка с повторными запросами
+  // 10. Try-request function with retries
   async function tryRequest(attempt = 0) {
     try {
       const response = await fetch(endpoint, config);
@@ -148,11 +148,11 @@ export async function request(endpoint, method, data = null, options = {}) {
         try {
           onResponse(response);
         } catch (hookErr) {
-          Logger.warn('Ошибка в onResponse-хуке:', hookErr);
+          Logger.warn('Error in onResponse-hook:', hookErr);
         }
       }
 
-      // Если игнорируем некоторые статус-коды
+      // If we ignore some status codes
       if (Array.isArray(options.ignoreStatus) && options.ignoreStatus.includes(response.status)) {
         return null;
       }
@@ -161,7 +161,7 @@ export async function request(endpoint, method, data = null, options = {}) {
         throw new Error(`HTTP ${response.status} ${response.statusText}`);
       }
 
-      // 11. Обработка прогресса при скачивании
+      // 11. Progress handling when downloading
       if (progressCb && response.body && response.body.getReader) {
         const reader = response.body.getReader();
         const contentLength = +response.headers.get('Content-Length') || 0;
@@ -176,7 +176,7 @@ export async function request(endpoint, method, data = null, options = {}) {
           try {
             progressCb(received, contentLength);
           } catch (hookErr) {
-            Logger.warn('Ошибка в progressCb:', hookErr);
+            Logger.warn('Error in progressCb:', hookErr);
           }
         }
 
@@ -191,7 +191,7 @@ export async function request(endpoint, method, data = null, options = {}) {
         return JSON.parse(text);
       }
 
-      // 12. Обычная обработка JSON/text/blob/etc.
+      // 12. Regular JSON/text/blob/etc. handling
       let result;
       switch (responseType) {
         case 'text':
@@ -222,7 +222,7 @@ export async function request(endpoint, method, data = null, options = {}) {
 
       return result;
     } catch (err) {
-      // 13. Обработка таймаута
+      // 13. Timeout handling
       if (err.name === 'AbortError') {
         const msg = `Request aborted by timeout (${timeout} ms): ${endpoint}`;
         if (!skipErrorLog) Logger.error(msg);
@@ -230,14 +230,14 @@ export async function request(endpoint, method, data = null, options = {}) {
         throw err;
       }
 
-      // 14. Повторная попытка
+      // 14. Retry attempt
       if (attempt < retryCount) {
         const delay = retryDelay * Math.pow(2, attempt);
         await new Promise((r) => setTimeout(r, delay));
         return tryRequest(attempt + 1);
       }
 
-      // 15. Circuit breaker после неудачных попыток
+      // 15. Circuit breaker after failed attempts
       if (circuitBreaker) {
         circuitState.failures += 1;
         circuitState.lastFailureTime = Date.now();
@@ -246,7 +246,7 @@ export async function request(endpoint, method, data = null, options = {}) {
         }
       }
 
-      const errMsg = `Ошибка при выполнении ${method}-запроса: ${err.message}`;
+      const errMsg = `Error in ${method}-request: ${err.message}`;
       if (!skipErrorLog) Logger.error(errMsg, err.stack);
       if (onError) onError(err);
       throw err;

@@ -36,7 +36,7 @@ export function registerRoute(path, callback) {
     return "([^\\/]+)";
   });
   routes[path] = { regex: new RegExp(`^${regexPath}$`), callback, paramNames };
-  Logger.debug(`Маршрут зарегистрирован: ${path}`);
+  Logger.debug(`Route registered: ${path}`);
 }
 
 export function registerNotFound(callback) {
@@ -50,7 +50,7 @@ export function registerHooks(path, { beforeEnter = null, afterLeave = null } = 
 
 export async function navigateTo(path, replace = false) {
   const fullPath = Config.router.basePath + path;
-  Logger.debug(`Переход к маршруту: ${fullPath}`);
+  Logger.debug(`Transition to route: ${fullPath}`);
 
   const container = document.querySelector(Config.router.containerSelector);
 
@@ -61,7 +61,7 @@ export async function navigateTo(path, replace = false) {
         await result;
       }
     } catch (err) {
-      Logger.error(`Ошибка в afterLeave хуке для "${currentPath}":`, err);
+      Logger.error(`Error in afterLeave hook for "${currentPath}":`, err);
     }
   }
 
@@ -70,7 +70,7 @@ export async function navigateTo(path, replace = false) {
       await animateTransition(container, 'fade-out');
       removeTransitionClass(container, 'fade-out');
     } catch (err) {
-      Logger.error('Ошибка при выполнении анимации fade-out:', err);
+      Logger.error('Error in fade-out animation:', err);
     }
   }
 
@@ -82,7 +82,7 @@ export async function navigateTo(path, replace = false) {
       }
       if (proceed === false) return;
     } catch (err) {
-      Logger.error(`Ошибка в beforeEnter хуке для "${fullPath}":`, err);
+      Logger.error(`Error in beforeEnter hook for "${fullPath}":`, err);
       return;
     }
   }
@@ -100,7 +100,7 @@ export async function navigateTo(path, replace = false) {
       await animateTransition(container, 'fade-in');
       removeTransitionClass(container, 'fade-in');
     } catch (err) {
-      Logger.error('Ошибка при выполнении анимации fade-in:', err);
+      Logger.error('Error in fade-in animation:', err);
     }
   }
 }
@@ -123,7 +123,7 @@ export function resolveRoute() {
       try {
         return callback({ params, query });
       } catch (err) {
-        Logger.error(`Ошибка при выполнении маршрута "${route}" с параметрами`, { params, query }, err);
+        Logger.error(`Error in route "${route}" with parameters`, { params, query }, err);
         return;
       }
     }
@@ -133,7 +133,7 @@ export function resolveRoute() {
     try {
       notFoundHandler();
     } catch (err) {
-      Logger.error(`Ошибка в notFoundHandler для маршрута "${path}":`, err);
+      Logger.error(`Error in notFoundHandler for route "${path}":`, err);
     }
   } else {
     Logger.error(`❌ Route not found: ${path}`);

@@ -88,7 +88,7 @@ export function subscribe(keys, callback) {
       });
     }
   } else {
-    throw new Error("Ключ подписки должен быть строкой или массивом строк");
+    throw new Error("Subscription key must be a string or an array of strings");
   }
 }
 
@@ -103,7 +103,7 @@ export function unsubscribe(keys, callback) {
   } else if (Array.isArray(keys)) {
     keys.forEach(key => unsubscribe(key, callback));
   } else {
-    throw new Error("Ключ подписки должен быть строкой или массивом строк");
+    throw new Error("Subscription key must be a string or an array of strings");
   }
 }
 

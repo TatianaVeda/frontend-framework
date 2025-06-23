@@ -10,7 +10,7 @@ export function PerformanceDashboard() {
       cpu: Math.floor(Math.random() * 100),
       memory: Math.floor(Math.random() * 1000)
     };
-    console.log('Обновление performanceData:', newData);
+    console.log('Updating performanceData:', newData);
     setState('performanceData', newData);
   };
 
@@ -18,16 +18,16 @@ export function PerformanceDashboard() {
     tag: 'div',
     props: { class: 'performance-dashboard page' },
     children: [
-      { tag: 'h2', children: 'Панель производительности' },
+      { tag: 'h2', children: 'Performance Dashboard' },
       { tag: 'p', props: { id: 'cpu' }, children: `CPU: ${getState('performanceData').cpu}%` },
       { tag: 'p', props: { id: 'memory' }, children: `Memory: ${getState('performanceData').memory}MB` }
     ],
     lifecycle: {
       mount: (node) => {
-        console.info('PerformanceDashboard смонтирован', node);
+        console.info('PerformanceDashboard mounted', node);
 
         node.__performanceInterval = setInterval(updatePerformance, 10000);
-        console.info('Интервал установлен на 10 сек');
+        console.info('Interval set to 10 sec');
       },
       update: (node) => {
         const data = getState('performanceData');
@@ -37,7 +37,7 @@ export function PerformanceDashboard() {
         if (memoryEl) memoryEl.textContent = `Memory: ${data.memory}MB`;
       },
       unmount: (node) => {
-        console.info('PerformanceDashboard размонтирован', node);
+        console.info('PerformanceDashboard unmounted', node);
 
         if (node.__performanceInterval) {
           clearInterval(node.__performanceInterval);

@@ -63,7 +63,7 @@ function runBatchUpdates() {
     try {
       fn();
     } catch (err) {
-      Logger.error('Ошибка в батчевом обновлении:', err);
+      Logger.error('Error in batch update:', err);
     }
   });
   pendingBatchUpdates = [];
@@ -78,7 +78,7 @@ function diffAndPatch(parent, oldVNode, newVNode, index = 0) {
       try {
         oldVNode.lifecycle.unmount(domNode);
       } catch (err) {
-        Logger.error('Ошибка в методе unmount компонента:', err);
+        Logger.error('Error in unmount component method:', err);
       }
     }
     if (domNode) {
@@ -94,7 +94,7 @@ function diffAndPatch(parent, oldVNode, newVNode, index = 0) {
       try {
         newVNode.lifecycle.mount(newDomNode);
       } catch (err) {
-        Logger.error('Ошибка в методе mount компонента:', err);
+        Logger.error('Error in mount component method:', err);
       }
     }
     return;
@@ -107,7 +107,7 @@ function diffAndPatch(parent, oldVNode, newVNode, index = 0) {
       try {
         newVNode.lifecycle.mount(newDomNode);
       } catch (err) {
-        Logger.error('Ошибка в методе mount компонента (при отсутствии domNode):', err);
+        Logger.error('Error in mount component method (when domNode is missing):', err);
       }
     }
     return;
@@ -118,7 +118,7 @@ function diffAndPatch(parent, oldVNode, newVNode, index = 0) {
       try {
         oldVNode.lifecycle.unmount(domNode);
       } catch (err) {
-        Logger.error('Ошибка в методе unmount компонента при замене:', err);
+        Logger.error('Error in unmount component method when replacing:', err);
       }
     }
     const newDomNode = renderVNode(newVNode);
@@ -127,7 +127,7 @@ function diffAndPatch(parent, oldVNode, newVNode, index = 0) {
       try {
         newVNode.lifecycle.mount(newDomNode);
       } catch (err) {
-        Logger.error('Ошибка в методе mount компонента при замене:', err);
+        Logger.error('Error in mount component method when replacing:', err);
       }
     }
   } else if (newVNode.tag) {
@@ -138,7 +138,7 @@ function diffAndPatch(parent, oldVNode, newVNode, index = 0) {
             newVNode.lifecycle.update(domNode, oldVNode, newVNode);
           });
         } catch (err) {
-          Logger.error('Ошибка в методе update динамичного компонента:', err);
+          Logger.error('Error in update dynamic component method:', err);
         }
       }
       return;
@@ -147,7 +147,7 @@ function diffAndPatch(parent, oldVNode, newVNode, index = 0) {
       try {
         newVNode.lifecycle.update(domNode);
       } catch (err) {
-        Logger.error('Ошибка в методе update компонента:', err);
+        Logger.error('Error in update component method:', err);
       }
     }
     let oldChildren = oldVNode.children;
@@ -215,7 +215,7 @@ function keyedDiffAndPatch(domParent, oldChildren, newChildren) {
               try {
                 oldChild.lifecycle.unmount(domNode);
               } catch (err) {
-                Logger.error('Ошибка в методе unmount компонента при удалении:', err);
+                Logger.error('Error in unmount component method when removing:', err);
               }
             }
             domParent.removeChild(domNode);
@@ -263,7 +263,7 @@ export function renderComponent(name, props = {}, parent) {
       try {
         newVNode.lifecycle.mount(newDomNode);
       } catch (err) {
-        Logger.error('Ошибка в методе mount компонента:', err);
+        Logger.error('Error in mount component method:', err);
       }
     }
   } else {
@@ -288,7 +288,7 @@ export function bindComponentToStateWithDeps(name, props, parent) {
     try {
       renderComponent(name, props, parent);
     } catch (err) {
-      Logger.error(`Ошибка при рендеринге компонента "${name}":`, err);
+      Logger.error(`Error in rendering component "${name}":`, err);
     }
     endDependencyCollection();
 
@@ -309,7 +309,7 @@ export function bindComponentToStateWithDeps(name, props, parent) {
         try {
           parent._vNode.lifecycle.unmount(domNode);
         } catch (err) {
-          Logger.error(`Ошибка при размонтировании компонента "${name}":`, err);
+          Logger.error(`Error in unmounting component "${name}":`, err);
         }
       }
       subscriptions.forEach(dep => {

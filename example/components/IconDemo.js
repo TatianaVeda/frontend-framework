@@ -63,7 +63,7 @@ export function IconDemo() {
       });
 
       const counter = createElement('div');
-      counter.textContent = `Кликов: ${stateClicks[key] || 0}`;
+      counter.textContent = `Clicks: ${stateClicks[key] || 0}`;
 
       appendChild(wrapper, img);
       appendChild(wrapper, counter);
@@ -85,7 +85,7 @@ export function IconDemo() {
           cursor: 'pointer',
           fontSize: '12px'
         });
-        delBtn.textContent = 'Удалить';
+        delBtn.textContent = 'Delete';
         appendChild(wrapper, delBtn);
       }
 
@@ -129,12 +129,12 @@ export function IconDemo() {
     tag: 'div',
     props: { class: 'page icon-demo' },
     children: [
-      { tag: 'h2', children: 'Иконки с реактивными счётчиками' },
+      { tag: 'h2', children: 'Icons with reactive counters' },
       {
         tag: 'div',
         props: { class: 'uploader', style: 'margin-bottom:16px;' },
         children: [
-          { tag: 'label', props: { for: 'fileInput' }, children: 'Загрузить своё изображение: ' },
+          { tag: 'label', props: { for: 'fileInput' }, children: 'Upload your image: ' },
           { tag: 'input', props: { type: 'file', id: 'fileInput', accept: 'image/*' } }
         ]
       },
@@ -142,7 +142,7 @@ export function IconDemo() {
     ],
     lifecycle: {
       mount: (node) => {
-        console.info('IconDemo смонтирован');
+        console.info('IconDemo mounted');
         renderIcons();
 
 
@@ -197,7 +197,7 @@ export function IconDemo() {
         unsubscribe('iconClicks', update);
         unsubscribe('iconNames',  update);
         unsubscribe('userIcons',  update);
-        console.info('IconDemo размонтирован');
+        console.info('IconDemo unmounted');
        //removeDelegateEventsByNamespace(container, '')
       }
     }
