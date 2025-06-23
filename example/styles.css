@@ -1,42 +1,41 @@
-.icon-gallery img {
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 8px;
-    background: #f9f9f9;
-  }
-  .icon-item:hover img {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  }
-
-.icon-wrapper {
-  text-align: center;
-  cursor: pointer;
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
-}
-
-
-.icon-wrapper:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-}
-
+/* ============================================================
+   1. Theme root variables
+   ============================================================ */
 :root {
-  --bg-color: #ffffff;
+  --bg-color:   #ffffff;
   --text-color: #000000;
-  --btn-bg: #eeeeee;
-  --btn-text: #000000;
+  --btn-bg:     #eeeeee;
+  --btn-text:   #000000;
 }
 
-/* 2. Телo страницы */
-body {
+/* These variables are overwritten by JS when the theme changes */
+
+/* ============================================================
+   2. Base page styles
+   ============================================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
   margin: 0;
   padding: 0;
   background-color: var(--bg-color);
   color: var(--text-color);
-  font-family: sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+  height: 100%;
 }
 
-/* 3. Кнопки */
+.page {
+  padding: 1rem;
+}
+
+/* ============================================================
+   3. Buttons
+   ============================================================ */
 button {
   background-color: var(--btn-bg);
   color: var(--btn-text);
@@ -44,14 +43,182 @@ button {
   padding: 0.5em 1em;
   border-radius: 4px;
   cursor: pointer;
+  transition: filter .2s, transform .1s;
 }
-
-/* 4. При наведении чуть затемняем фон кнопки */
-button:hover {
+button:hover,
+button:focus {
   filter: brightness(0.9);
+  transform: translateY(-1px);
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-/* 5. Страницы вашего фреймворка могут иметь паддинг */
-.page {
-  padding: 1em;
+/* ============================================================
+   4. IconDemo component: grid and icon card
+   ============================================================ */
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+.icon-card {
+  background: var(--btn-bg);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  text-align: center;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.icon-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+.icon-card img {
+  display: block;
+  margin: 0 auto 8px;
+  width: 64px;
+  height: 64px;
+}
+.icon-card .icon-label {
+  font-size: 0.9em;
+  color: var(--text-color);
+}
+
+/* ============================================================
+   5. ThemeSwitcher component and custom palette
+   ============================================================ */
+.theme-switcher.card {
+  background: var(--btn-bg);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 1rem 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform .2s, box-shadow .2s;
+}
+.theme-switcher.card:hover {
+  transform: none !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.theme-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.theme-buttons button {
+  flex: 1;
+}
+.theme-buttons button.active {
+  outline: 2px solid var(--text-color);
+}
+
+/* Hide the palette by default; JS will show it when mode === 'custom' */
+.custom-palette {
+  display: none;
+}
+
+/* Two-column grid for the palette */
+.grid-2cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Row for each variable: dot—label—input */
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Circle showing the current color */
+.color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #aaa;
+  flex-shrink: 0;
+}
+
+/* Label text without extra "--" */
+.palette-item span {
+  /* flex: 1; */
+  font-size: 0.9em;
+  color: var(--text-color);
+}
+
+/* Color picker input */
+.palette-item input[type="color"] {
+  border: none;
+  width: 32px;
+  height: 32px;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+}
+
+/* ============================================================
+   6. Extras: utilities
+   ============================================================ */
+/* Optional helper classes like .flex, .gap-x, .items-center, etc. can be added as needed */
+.flex {
+  display: flex;
+}
+.items-center {
+  align-items: center;
+}
+.gap-2 {
+  gap: 8px;
+}
+.gap-3 {
+  gap: 12px;
+}
+.gap-4 {
+  gap: 16px;
+}
+
+
+
+/* Круглый индикатор */
+.timer-visual {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+.timer-bg {
+  fill: none;
+  stroke: var(--btn-bg);
+  stroke-width: 10;
+}
+.timer-fg {
+  fill: none;
+  stroke: var(--btn-text);
+  stroke-width: 10;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  stroke-dasharray: 283; /* ~2π·45 */
+  stroke-dashoffset: 283;
+  transition: stroke-dashoffset 0.5s linear;
+}
+.timer-text {
+  fill: var(--text-color);
+  font-size: 12px;
+  font-family: monospace;
+  user-select: none;
+}
+
+/* Пульсация */
+.timer-fg.pulse {
+  animation: pulse 1s infinite alternate;
+}
+@keyframes pulse {
+  to { stroke-width: 14; }
 }

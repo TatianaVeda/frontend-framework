@@ -1,62 +1,91 @@
-
-//import { defineComponent } from 'framework/components.js';
 import { getState, setState, subscribe } from 'framework/state.js';
 import { Config } from 'framework/config.js';
 
-function ThemeSwitcher() {
+const MODE_LABELS = {
+  light:  '🌞 Светлая',
+  dark:   '🌙 Тёмная',
+  custom: '🎨 Пользовательская',
+  auto:   '🌓 Авто'
+};
+
+export function ThemeSwitcher() {
   const modes = Config.theme.available;
+  const changeMode = mode => setState('themeMode', mode);
 
-  const changeMode = (mode) => {
-    setState('themeMode', mode);
-  };
+  let updateUI;
 
-  // слежение за UI (например, выделение активной кнопки)
-  let updateUI = null;
-  subscribe('themeMode', () => {
-    if (updateUI) updateUI();
-  });
+  // Функция, которая раскрашивает все кружки по текущему customTheme
+  function updateColorDots() {
+    document.querySelectorAll('.color-dot').forEach(dot => {
+      const varName = dot.dataset.var;
+      dot.style.backgroundColor =
+        getState('customTheme')[varName] ||
+        Config.theme.vars.light[varName];
+    });
+  }
+
+  subscribe('themeMode', () => updateUI && updateUI());
+  subscribe('customTheme', updateColorDots);
 
   return {
     tag: 'div',
-    props: { class: 'page theme-switcher' },
+    props: { class: 'theme-switcher page card' },
     children: [
-      { tag: 'h2', children: 'Выбор темы' },
+      { tag: 'h2', children: 'Тема приложения' },
       {
         tag: 'div',
-        props: { class: 'theme-buttons' },
+        props: { class: 'theme-buttons flex gap-2' },
         children: modes.map(m => ({
           tag: 'button',
           props: {
             'data-mode': m,
-            class: getState('themeMode') === m ? 'active' : ''
+            class: `btn btn-sm ${getState('themeMode') === m ? 'active' : ''}`
           },
-          events: {
-            click: () => changeMode(m)
-          },
-          children: m.charAt(0).toUpperCase() + m.slice(1)
+          events: { click: () => changeMode(m) },
+          children: MODE_LABELS[m]
         }))
       },
-      { tag: 'h3', children: 'Кастомные цвета' },
+      { tag: 'h3', children: 'Кастомная палитра' },
       {
         tag: 'div',
-        props: { class: 'custom-palette' },
-        children: Object.keys(Config.theme.vars.light).map(varName => ({
+        props: { class: 'custom-palette grid-2cols' },
+        children: Object.entries(Config.theme.vars.light).map(([varName, defaultVal]) => ({
           tag: 'div',
-          props: { class: 'palette-item' },
+          props: { class: 'palette-item flex items-center' },
           children: [
-            { tag: 'label', props: { for: varName }, children: varName },
+            {
+              tag: 'div',
+              props: {
+                class: 'color-dot',
+                'data-var': varName
+              },
+              lifecycle: {
+                mount(node) {
+                  // Установить цвет сразу при монтировании
+                  node.style.backgroundColor =
+                    getState('customTheme')[varName] || defaultVal;
+                },
+                update(node) {
+                  // На всякий случай, если компонент ре-рендерится
+                  node.style.backgroundColor =
+                    getState('customTheme')[varName] || defaultVal;
+                }
+              }
+            },
+            { tag: 'span', children: varName.replace('--', '') },
             {
               tag: 'input',
               props: {
-                id: varName,
                 type: 'color',
-                value: getState('customTheme')[varName] || Config.theme.vars.light[varName]
+                value: getState('customTheme')[varName] || defaultVal
               },
               events: {
-                input: (e) => {
-                  const ct = getState('customTheme') || {};
-                  ct[varName] = e.target.value;
-                  setState('customTheme', { ...ct });
+                input: e => {
+                  const ct = {
+                    ...getState('customTheme'),
+                    [varName]: e.target.value
+                  };
+                  setState('customTheme', ct);
                   setState('themeMode', 'custom');
                 }
               }
@@ -68,12 +97,19 @@ function ThemeSwitcher() {
     lifecycle: {
       mount(node) {
         updateUI = () => {
-          const mode = getState('themeMode');
+          // переключаем активную кнопку
           node.querySelectorAll('.theme-buttons button').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.mode === mode);
+            btn.classList.toggle(
+              'active',
+              btn.dataset.mode === getState('themeMode')
+            );
           });
+          // показываем или скрываем палитру
+          node.querySelector('.custom-palette').style.display =
+            getState('themeMode') === 'custom' ? 'grid' : 'none';
         };
         updateUI();
+        updateColorDots(); // и сразу раскрасить кружки
       },
       unmount() {
         updateUI = null;
@@ -81,5 +117,3 @@ function ThemeSwitcher() {
     }
   };
 }
-
-export { ThemeSwitcher };

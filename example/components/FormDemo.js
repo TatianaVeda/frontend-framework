@@ -1,3 +1,4 @@
+// /frontend-framework/example/components/FormDemo.js
 import { postData } from 'framework/api.js';
 import {
   createElement,
@@ -5,7 +6,7 @@ import {
   appendChild,
   clearChildren
 } from 'framework/dom.js';
-import { delegateEvent } from 'framework/events.js';
+import { delegateEvent, removeAllDelegateEvents } from 'framework/events.js';  // <-- добавили removeAllDelegateEvents
 
 export function FormDemo() {
   const isLive = window.location.protocol === 'http:' &&
@@ -19,16 +20,14 @@ export function FormDemo() {
 
   const container = createElement('div');
   const input = createElement('input', {
-        type: 'text',
-        name: 'userName',
-        id: 'userNameInput',
-        placeholder: 'Ваше имя'
-      });
-
+    type: 'text',
+    name: 'userName',
+    id: 'userNameInput',
+    placeholder: 'Ваше имя'
+  });
   const btn = createElement('button');
   setTextContent(btn, 'Отправить');
   btn.dataset.action = 'submit-form';
-
   const result = createElement('p');
 
   appendChild(container, input);
@@ -40,35 +39,44 @@ export function FormDemo() {
     props: { class: 'form-demo page' },
     children: [container],
     lifecycle: {
-      mount: (node) => {
+      mount(node) {
         console.info('FormDemo смонтирован', node);
         const formContainer = node.querySelector('div');
-        delegateEvent(formContainer, 'click', '[data-action="submit-form"]', async () => {
-          const name = input.value.trim();
-          if (!name) {
-            result.textContent = 'Введите имя';
-            return;
-          }
-          clearChildren(result);
-          setTextContent(result, 'Отправляем...');
-          try {
-            const res = await send('/hello', { name });
+        delegateEvent(
+          formContainer,
+          'click',
+          '[data-action="submit-form"]',
+          async () => {
+            const name = input.value.trim();
+            if (!name) {
+              result.textContent = 'Введите имя';
+              return;
+            }
             clearChildren(result);
-            setTextContent(result, `Сервер ответил: ${res.greeting}`);
-          } catch (err) {
-            clearChildren(result);
-            setTextContent(result, 'Ошибка при отправке');
-            console.error(err);
+            setTextContent(result, 'Отправляем...');
+            try {
+              const res = await send('/hello', { name });
+              clearChildren(result);
+              setTextContent(result, `Сервер ответил: ${res.greeting}`);
+            } catch (err) {
+              clearChildren(result);
+              setTextContent(result, 'Ошибка при отправке');
+              console.error(err);
+            }
           }
-        });
+        );
       },
-      update: (node) => {
-      },
+      // unmount(node) {
+      //   console.info('FormDemo размонтирован', node);
+      //   const formContainer = node.querySelector('div');
+      //   removeAllDelegateEvents(formContainer, 'click');
+      // }
       unmount: (node) => {
-        console.info('FormDemo размонтирован', node);
-   
-         removeAllDelegateEvents(node.querySelector('div'), 'click');
-      }
+    if (!node) return;
+    console.info('FormDemo размонтирован', node);
+    const formContainer = node.querySelector('div');
+    if (formContainer) removeAllDelegateEvents(formContainer, 'click');
+  }
     }
   };
 }

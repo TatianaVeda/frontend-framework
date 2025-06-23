@@ -1,39 +1,40 @@
-
 import Logger from '../logger.js';
-export const memoryCache = new Map();
+export const memoryCache = new Map(); // In-memory cache for storing responses (Map объект для кеширования в памяти)
 
 const circuitState = {
-  failures: 0,
-  lastFailureTime: 0,
-  open: false,
+  failures: 0,               // Number of consecutive failures (количество последовательных неудач)
+  lastFailureTime: 0,        // Timestamp of the last failure (время последней ошибки)
+  open: false,               // Whether the circuit breaker is open (состояние «разомкнутой» цепи)
 };
 
 export async function request(endpoint, method, data = null, options = {}) {
   const {
     params,
     timeout,
-    retryCount = 0,
-    retryDelay = 300,
+    retryCount = 0,          // Number of retry attempts (количество попыток повторения)
+    retryDelay = 300,        // Base delay between retries in milliseconds (начальная задержка между повторами)
     onRequest,
     onResponse,
     responseType,
     authToken,
     cacheKey,
-    skipErrorLog = false,
+    skipErrorLog = false,    // Whether to skip logging errors (не логировать ошибки)
     transformData,
     onError,
     metricsLabel,
     circuitBreaker,
-    progressCb,         
-    uploadProgressCb,   
+    progressCb,              // Callback for download progress (колбэк прогресса загрузки)
+    uploadProgressCb,        // Callback for upload progress (колбэк прогресса отправки)
     ...fetchOptions
   } = options;
 
+  // Append URL query parameters if provided
   if (params) {
     const qs = new URLSearchParams(params).toString();
     endpoint += endpoint.includes('?') ? '&' + qs : '?' + qs;
   }
 
+  // Circuit breaker: if open and not yet reset, reject immediately
   if (circuitBreaker && circuitState.open) {
     const timeSince = Date.now() - circuitState.lastFailureTime;
     if (timeSince < circuitBreaker.resetTimeout) {
@@ -41,15 +42,18 @@ export async function request(endpoint, method, data = null, options = {}) {
       if (onError) onError(err);
       throw err;
     } else {
+      // Reset circuit breaker after timeout
       circuitState.open = false;
       circuitState.failures = 0;
     }
   }
 
+  // Return cached response if available
   if (cacheKey && memoryCache.has(cacheKey)) {
     return memoryCache.get(cacheKey);
   }
 
+  // Offline fallback support
   if ('offlineFallback' in options && !navigator.onLine) {
     const fb = typeof options.offlineFallback === 'function'
       ? options.offlineFallback()
@@ -57,11 +61,13 @@ export async function request(endpoint, method, data = null, options = {}) {
     return fb;
   }
 
+  // Setup for request abortion on timeout
   const controller = new AbortController();
   if (timeout > 0) {
     setTimeout(() => controller.abort(), timeout);
   }
 
+  // Build fetch configuration
   const config = {
     method,
     headers: {
@@ -79,19 +85,19 @@ export async function request(endpoint, method, data = null, options = {}) {
     ...fetchOptions,
   };
 
+  // Handle large Blob uploads in chunks with progress callback
   const isUpload = uploadProgressCb && (method.toUpperCase() === 'POST' || method.toUpperCase() === 'PUT');
   if (isUpload && data instanceof Blob) {
 
     const total = data.size;
     let uploaded = 0;
-    const chunkSize = Math.ceil(total / 20); 
+    const chunkSize = Math.ceil(total / 20); // Divide upload into 20 parts
     for (let start = 0; start < total; start += chunkSize) {
       const slice = data.slice(start, start + chunkSize);
-  
+
       await fetch(endpoint, {
         method,
         headers: {
-       
           ...config.headers,
           'Content-Type': slice.type || 'application/octet-stream'
         },
@@ -102,7 +108,7 @@ export async function request(endpoint, method, data = null, options = {}) {
       try {
         uploadProgressCb(uploaded, total);
       } catch (hookErr) {
-        Logger.warn('Ошибка в uploadProgressCb:', hookErr);
+        Logger.warn('Error in uploadProgressCb:', hookErr); // «Ошибка в uploadProgressCb:» => "Error in uploadProgressCb:"
       }
     }
 
@@ -111,44 +117,52 @@ export async function request(endpoint, method, data = null, options = {}) {
 
 
   let payload = null;
+  // Serialize non-GET data, applying any transform if provided
   if (data !== null && method.toUpperCase() !== 'GET') {
     const toSend = transformData ? transformData(data) : data;
     payload = toSend;
     config.body = JSON.stringify(payload);
   }
 
+  // Invoke onRequest hook if present
   if (typeof onRequest === 'function') {
     try {
       onRequest(config, endpoint);
     } catch (hookErr) {
-      Logger.warn('Ошибка в onRequest-хуке:', hookErr);
+      Logger.warn('Error in onRequest hook:', hookErr); // «Ошибка в onRequest-хуке:» => "Error in onRequest hook:"
     }
   }
 
+  // Start timing metric if label is given
   if (metricsLabel) {
     console.time(`Request ${metricsLabel}`);
   }
 
+  // Internal function to attempt the fetch, with retry logic
   async function tryRequest(attempt = 0) {
     try {
       const response = await fetch(endpoint, config);
 
+      // Invoke onResponse hook if present
       if (typeof onResponse === 'function') {
         try {
           onResponse(response);
         } catch (hookErr) {
-          Logger.warn('Ошибка в onResponse-хуке:', hookErr);
+          Logger.warn('Error in onResponse hook:', hookErr); // «Ошибка в onResponse-хуке:» => "Error in onResponse hook:"
         }
       }
 
+      // Optionally ignore certain status codes
       if (Array.isArray(options.ignoreStatus) && options.ignoreStatus.includes(response.status)) {
         return null;
       }
 
+      // Throw on HTTP errors
       if (!response.ok) {
         throw new Error(`HTTP ${response.status} ${response.statusText}`);
       }
 
+      // Handle streaming download with progress callback
       if (progressCb && response.body && response.body.getReader) {
         const reader = response.body.getReader();
         const contentLength = +response.headers.get('Content-Length') || 0;
@@ -163,7 +177,7 @@ export async function request(endpoint, method, data = null, options = {}) {
           try {
             progressCb(received, contentLength);
           } catch (hookErr) {
-            Logger.warn('Ошибка в progressCb:', hookErr);
+            Logger.warn('Error in progressCb:', hookErr); // «Ошибка в progressCb:» => "Error in progressCb:"
           }
         }
 
@@ -178,6 +192,7 @@ export async function request(endpoint, method, data = null, options = {}) {
         return JSON.parse(text);
       }
 
+      // Default response parsing based on responseType
       let result;
       switch (responseType) {
         case 'text':
@@ -193,14 +208,17 @@ export async function request(endpoint, method, data = null, options = {}) {
           result = await response.json();
       }
 
+      // Cache the result if key provided
       if (cacheKey) {
         memoryCache.set(cacheKey, result);
       }
 
+      // End timing metric
       if (metricsLabel) {
         console.timeEnd(`Request ${metricsLabel}`);
       }
 
+      // Reset circuit breaker on success
       if (circuitBreaker) {
         circuitState.failures = 0;
         circuitState.open = false;
@@ -209,19 +227,22 @@ export async function request(endpoint, method, data = null, options = {}) {
       return result;
     } catch (err) {
 
+      // Handle abort (timeout) errors
       if (err.name === 'AbortError') {
-        const msg = `Запрос отменён по таймауту (${timeout} ms): ${endpoint}`;
+        const msg = `Request aborted due to timeout (${timeout} ms): ${endpoint}`; // «Запрос отменён по таймауту» => "Request aborted due to timeout"
         if (!skipErrorLog) Logger.error(msg);
         if (onError) onError(err);
         throw err;
       }
 
+      // Retry logic with exponential backoff
       if (attempt < retryCount) {
         const delay = retryDelay * Math.pow(2, attempt);
         await new Promise((r) => setTimeout(r, delay));
         return tryRequest(attempt + 1);
       }
 
+      // Circuit breaker on repeated failures
       if (circuitBreaker) {
         circuitState.failures += 1;
         circuitState.lastFailureTime = Date.now();
@@ -230,7 +251,7 @@ export async function request(endpoint, method, data = null, options = {}) {
         }
       }
 
-      const errMsg = `Ошибка при выполнении ${method}-запроса: ${err.message}`;
+      const errMsg = `Error performing ${method} request: ${err.message}`; // «Ошибка при выполнении ...» => "Error performing ... request"
       if (!skipErrorLog) Logger.error(errMsg, err.stack);
       if (onError) onError(err);
       throw err;

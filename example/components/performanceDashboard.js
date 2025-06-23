@@ -38,7 +38,7 @@ export function PerformanceDashboard() {
       },
       unmount: (node) => {
         console.info('PerformanceDashboard размонтирован', node);
-
+          if (!node) return;  
         if (node.__performanceInterval) {
           clearInterval(node.__performanceInterval);
           node.__performanceInterval = null;

@@ -2,26 +2,26 @@ import { setState, subscribe } from 'framework/state.js';
 
 const STORAGE_KEY = 'appState';
 
-// Функция загрузки из localStorage
+// Loads state from localStorage, if available
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      console.info('PersistentState: нет сохранённого state — оставляем defaults.');
+      console.info('PersistentState: no saved state — keeping defaults.');
       return;
     }
 
     const parsed = JSON.parse(raw);
     Object.entries(parsed).forEach(([key, value]) => {
-      setState(key, value);
+      setState(key, value); // Restore each saved state value
     });
-    console.info('PersistentState: загружено состояние из localStorage.');
+    console.info('PersistentState: state loaded from localStorage.');
   } catch (err) {
-    console.error('PersistentState: не удалось загрузить state:', err);
+    console.error('PersistentState: failed to load state:', err);
   }
 }
 
-// Простая debounce-обёртка
+// Utility function to debounce calls — delays execution
 function debounce(fn, delay) {
   let timeout = null;
   return (arg) => {
@@ -32,36 +32,34 @@ function debounce(fn, delay) {
 
 let currentState = {};
 
-// Основная функция инициализации
+// Initializes the persistent state mechanism
 export function initPersistentState() {
-  // 1) Загружаем (если есть) предыдущий state
-  loadState();
+  loadState(); // Load state from storage on init
 
-  // 2) Читаем его в currentState, или оставляем пустым объектом
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     currentState = raw ? JSON.parse(raw) : {};
   } catch (err) {
-    console.error('PersistentState: ошибка чтения currentState:', err);
+    console.error('PersistentState: error reading currentState:', err);
     currentState = {};
   }
 
+  // Debounced save function to prevent frequent writes
   const saveDebounced = debounce((stateObj) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(stateObj));
-      console.info('PersistentState: state сохранён.');
+      console.info('PersistentState: state saved.');
     } catch (err) {
-      console.error('PersistentState: ошибка при сохранении state:', err);
+      console.error('PersistentState: error saving state:', err);
     }
   }, 300);
 
+  // Subscribe to all state changes
   subscribe('*', (change) => {
-    // Пропускаем ненужные ключи
-    if (change.key === 'chatSocket') return;
+    if (change.key === 'chatSocket') return; // Skip saving this key
 
     currentState[change.key] = change.value;
 
-    saveDebounced(currentState);
+    saveDebounced(currentState); // Save the updated state
   });
 }
-

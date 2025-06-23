@@ -250,6 +250,7 @@ export function Chat() {
       },
 
       unmount: (node) => {
+         if (!node) return; 
         unsubscribe('chatMessages', renderMessages);
         unsubscribe('chatStatus', updateStatusUI);
 

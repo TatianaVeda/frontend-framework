@@ -1,7 +1,7 @@
 {
   "name": "frontend-framework",
   "version": "1.0.0",
-  "description": "Демонстрационный проект для dot-js front-end фреймворка",
+  "description": "Demo project for the dot-js front-end framework",
   "main": "main.js",
   "type": "module",
   "scripts": {

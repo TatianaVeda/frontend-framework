@@ -158,6 +158,7 @@ export function FileProgressDemo() {
       },
 
       unmount: (node) => {
+          if (!node) return;  
         unsubscribe('downloadProgress', updateDownloadBar);
         unsubscribe('uploadProgress', updateUploadBar);
       }

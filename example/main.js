@@ -1,7 +1,15 @@
-
-import { Router, registerRoute, registerNotFound, navigateTo } from 'framework/router.js';
+import {
+  Router,
+  registerRoute,
+  registerNotFound,
+  navigateTo
+} from 'framework/router.js';
 import { initPersistentState } from 'framework/persistentState.js';
-import { renderComponent, defineComponent, bindComponentToStateWithDeps } from 'framework/components.js';
+import {
+  renderComponent,
+  defineComponent,
+  bindComponentToStateWithDeps
+} from 'framework/components.js';
 import { registerHooks } from 'framework/router.js';
 import { getState, setState, subscribe } from 'framework/state.js';
 import { applyTheme } from 'framework/dom.js';
@@ -18,15 +26,13 @@ import { FormDemo } from './components/FormDemo.js';
 import { IconDetail } from './components/IconDetail.js';
 import { ThemeSwitcher } from './components/ThemeSwitcher.js';
 
-// дополнительные демо-компоненты
 import { Chat } from './components/extra/Chat.js';
 import { FileProgressDemo } from './components/extra/FileProgressDemo.js';
 
+// Initialize state persistence (loads saved state, subscribes to changes)
 initPersistentState();
 
-// ——— Логика автодетекта и реакции на смену темы ———
-
-// Инициализация state для темы, если ещё не задано
+// Initialize themeMode and customTheme in state if not already set
 if (getState('themeMode') === undefined) {
   setState('themeMode', Config.theme.default);
 }
@@ -34,93 +40,107 @@ if (getState('customTheme') === undefined) {
   setState('customTheme', Config.theme.vars.custom || {});
 }
 
-// Функция, возвращающая набор CSS-переменных для режима
+/**
+ * Resolves the actual CSS variable map for the current theme mode.
+ *
+ * @param {string} mode - 'light', 'dark', 'custom', or 'auto'
+ * @param {object} customVars - Custom theme variables from state
+ * @returns {object} Map of CSS variables to apply
+ */
 function resolveThemeVars(mode, customVars) {
-  // авто-режим по prefers-color-scheme
+  // Auto-detect system preference if in 'auto' mode
   if (mode === 'auto' && Config.theme.autoDetect) {
     const darkMq = window.matchMedia('(prefers-color-scheme: dark)');
     mode = darkMq.matches ? 'dark' : 'light';
-    // слушаем изменение системных настроек
+
+    // Listen for system theme changes and reapply if still in auto mode
     darkMq.addEventListener('change', () => {
       if (getState('themeMode') === 'auto') {
         applyTheme(resolveThemeVars('auto', getState('customTheme')));
       }
     });
   }
-  // кастомная тема
+
+  // If custom mode, use the provided custom variables
   if (mode === 'custom') {
     return customVars || {};
   }
-  // светлая или тёмная
+
+  // Otherwise return the predefined vars for light or dark
   return Config.theme.vars[mode] || {};
 }
 
-// подписываемся на смену режима темы
+// Subscribe to themeMode changes and apply the new theme
 subscribe('themeMode', () => {
-  const mode   = getState('themeMode');
+  const mode = getState('themeMode');
   const custom = getState('customTheme');
   applyTheme(resolveThemeVars(mode, custom));
 });
-// подписываемся на изменение палитры, если активен режим custom
+
+// Subscribe to customTheme changes when in custom mode
 subscribe('customTheme', () => {
   if (getState('themeMode') === 'custom') {
     applyTheme(getState('customTheme'));
   }
 });
-// сразу применяем текущие настройки
+
+// Immediately apply the current theme on startup
 (() => {
-  const mode   = getState('themeMode');
+  const mode = getState('themeMode');
   const custom = getState('customTheme');
   applyTheme(resolveThemeVars(mode, custom));
 })();
 
-// ——— конец темы ———
-
+// Icon key → source URL map
 const ICON_SRC_MAP = {
   android192: '/android-chrome-192x192.png',
   android512: '/android-chrome-512x512.png',
-  apple:      '/apple-touch-icon.png',
-  fav16:      '/favicon-16x16.png',
-  fav32:      '/favicon-32x32.png'
+  apple: '/apple-touch-icon.png',
+  fav16: '/favicon-16x16.png',
+  fav32: '/favicon-32x32.png'
 };
 
 let currentComponent = null;
 
+// Register route-specific hooks for '/queue'
 registerHooks('/queue', {
   beforeEnter: () => {
     const existing = getState('queue');
+    // If queue not initialized or empty, populate with defaults
     if (!Array.isArray(existing) || existing.length === 0) {
       setState('queue', [
-        { id: 1, text: 'Автоэлемент 1', isEditing: false },
-        { id: 2, text: 'Автоэлемент 2', isEditing: false }
+        { id: 1, text: 'Auto item 1', isEditing: false },
+        { id: 2, text: 'Auto item 2', isEditing: false }
       ]);
     }
     return true;
   },
   afterLeave: () => {
-    console.info('Покидаем страницу очереди');
+    console.info('Leaving the queue page');
   }
 });
 
+// Define the Home component
 defineComponent('Home', () => ({
   tag: 'div',
   props: { class: 'page' },
   children: [
-    { tag: 'h2', children: 'Добро пожаловать!' },
+    { tag: 'h2', children: 'Welcome!' },
     {
       tag: 'button',
       events: {
         click: (event) => {
           const msgs = getState('notifications') || [];
-          setState('notifications', [...msgs, 'Новая нотификация из Home']);
+          setState('notifications', [...msgs, 'New notification from Home']);
           window.navigateTo('/events-demo', event);
         }
       },
-      children: 'Добавить уведомление и перейти'
+      children: 'Add notification and navigate'
     }
   ]
 }));
 
+// Register named components
 defineComponent('TimeTracker', TimeTracker);
 defineComponent('QueueManager', QueueManager);
 defineComponent('PerformanceDashboard', PerformanceDashboard);
@@ -134,6 +154,7 @@ defineComponent('ThemeSwitcher', ThemeSwitcher);
 defineComponent('Chat', Chat);
 defineComponent('FileProgressDemo', FileProgressDemo);
 
+// Register application routes and render/unmount logic
 registerRoute('/', () => {
   const app = document.getElementById('app');
   if (currentComponent?.unmount) currentComponent.unmount();
@@ -188,6 +209,7 @@ registerRoute('/icons', () => {
   renderComponent('IconDemo', {}, app);
 });
 
+// Route with dynamic :key parameter for icon detail
 registerRoute('/icons/:key', (route) => {
   const app = document.getElementById('app');
   if (currentComponent?.unmount) currentComponent.unmount();
@@ -196,13 +218,14 @@ registerRoute('/icons/:key', (route) => {
   let src = ICON_SRC_MAP[iconKey];
 
   if (!src) {
+    // Check user-uploaded icons if not in default map
     const uploads = getState('userIcons') || [];
-    const found  = uploads.find(item => item.key === iconKey);
+    const found = uploads.find(item => item.key === iconKey);
     src = found?.src || null;
   }
 
   if (!src) {
-    app.innerHTML = '<h2>Иконка не найдена</h2>';
+    app.innerHTML = '<h2>Icon not found</h2>';
     return;
   }
 
@@ -228,11 +251,18 @@ registerRoute('/theme-switcher', () => {
   currentComponent = bindComponentToStateWithDeps('ThemeSwitcher', {}, app);
 });
 
+// Handle unknown routes
 registerNotFound(() => {
   const app = document.getElementById('app');
-  app.innerHTML = '<h2>Страница не найдена</h2>';
+  app.innerHTML = '<h2>Page not found</h2>';
 });
 
+/**
+ * Overrides window.navigateTo for link clicks to handle SPA navigation:
+ * - Prevents default link behavior
+ * - Unmounts current component
+ * - Clears container, updates history, and delegates to router.navigateTo
+ */
 window.navigateTo = function(path, event) {
   if (event) event.preventDefault();
   if (currentComponent?.unmount) currentComponent.unmount();

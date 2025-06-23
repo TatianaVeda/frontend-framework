@@ -105,25 +105,22 @@ export function IconDemo() {
     return 'upload_' + (nextUploadId++);
   }
 
-
-  function handleFileUpload(file) {
-    const objectURL = URL.createObjectURL(file);
-    const newKey = generateUploadKey();
-    const newIcon = { key: newKey, src: objectURL, alt: file.name };
-
+function handleFileUpload(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = reader.result; 
+    const newKey  = generateUploadKey();
+    const newIcon = { key: newKey, src: dataUrl, alt: file.name };
 
     const existing = getState('userIcons') || [];
     setState('userIcons', [...existing, newIcon]);
+    setState('iconClicks',  { ...getState('iconClicks'), [newKey]: 0 });
+    setState('iconNames',   { ...getState('iconNames'),  [newKey]: file.name });
+  };
+  reader.readAsDataURL(file);
+}
 
 
-    const c = getState('iconClicks');
-    c[newKey] = 0;
-    setState('iconClicks', { ...c });
-
-    const n = getState('iconNames');
-    n[newKey] = file.name;
-    setState('iconNames', { ...n });
-  }
 
   return {
     tag: 'div',
@@ -194,11 +191,13 @@ export function IconDemo() {
         }
       },
       unmount: (node) => {
+          if (!node) return;  
         unsubscribe('iconClicks', update);
         unsubscribe('iconNames',  update);
         unsubscribe('userIcons',  update);
         console.info('IconDemo размонтирован');
-       //removeDelegateEventsByNamespace(container, '')
+       // при необходимости снять делегированные события:
+       // removeDelegateEventsByNamespace(container, 'icon-demo');
       }
     }
   };

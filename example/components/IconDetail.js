@@ -97,13 +97,22 @@ export function IconDetail({ key, src, clicks }) {
           }
         );
       },
+      // unmount: (node) => {
+      //   console.info('IconDetail размонтирован', node);
+      //   const wrapper = node.querySelector('div');
+      //   if (wrapper) {
+      //     removeDelegateEventsByNamespace(wrapper, '');
+      //   }
+      // }
       unmount: (node) => {
-        console.info('IconDetail размонтирован', node);
-        const wrapper = node.querySelector('div');
-        if (wrapper) {
-          removeDelegateEventsByNamespace(wrapper, '');
-        }
-      }
+  console.info('IconDetail размонтирован', node);
+  if (!node) return;                     
+  const wrapper = node.querySelector('div');
+  if (wrapper) {
+    removeDelegateEventsByNamespace(wrapper, '');
+  }
+}
+
     }
   };
 }
