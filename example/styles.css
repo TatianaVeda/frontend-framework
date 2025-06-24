@@ -395,10 +395,10 @@ h3 { color: #555; margin-bottom: 15px; }
 .home-btn {
   display: block;
   margin: 0 auto 18px auto;
-  padding: 14px 36px;
-  font-size: 1.25em;
+  padding: 16px 32px;
+  font-size: 1.15em;
   font-weight: bold;
-  border-radius: 24px;
+  border-radius: 20px;
   background: linear-gradient(90deg, #a89ee6 0%, #8e8cd8 100%);
   color: #fff;
   border: none;
@@ -934,4 +934,16 @@ h3 { color: #555; margin-bottom: 15px; }
   color: #2ecc40;
   font-size: 1.2em;
   margin-right: 0.5em; 
+}
+
+.theme-indicator-circle {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #aaa;
+  margin-left: 8px;
+  vertical-align: middle;
+  background: #fff;
+  transition: background 0.2s;
 }

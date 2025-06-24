@@ -141,14 +141,13 @@ defineComponent('Home', () => ({
   props: { class: 'page' },
   children: [
     { tag: 'h2', children: 'Welcome!' },
-    { tag: 'h2', children: 'Welcome!' },
-    {
+        {
       tag: 'button',
       events: {
         click: (event) => {
           const msgs = getState('notifications') || [];
           setState('notifications', [...msgs, 'New notification from Home']);
-          setState('notifications', [...msgs, 'New notification from Home']);
+        
           window.navigateTo('/events-demo', event);
         }
       },
@@ -186,14 +185,14 @@ registerRoute('/time-tracker', () => {
 });
 
 // Keep for backward compatibility, but render TaskManager
-registerRoute('/queue', () => {
+/* registerRoute('/queue', () => {
   const app = document.getElementById('app');
   if (currentComponent && typeof currentComponent.unmount === 'function') {
     currentComponent.unmount();
     currentComponent = null;
   }
   currentComponent = bindComponentToStateWithDeps('TaskManager', {}, app);
-});
+}); */
 
 // New route for Task Manager
 registerRoute('/task-manager', () => {
@@ -258,8 +257,7 @@ registerRoute('/icons/:key', (route) => {
 
   if (!src) {
     app.innerHTML = '<h2>Icon not found</h2>';
-    app.innerHTML = '<h2>Icon not found</h2>';
-    return;
+       return;
   }
 
   const clicks = (getState('iconClicks') || {})[iconKey] || 0;
@@ -319,7 +317,7 @@ registerRoute('/dashboard', () => {
     <h1 class="dashboard-title">🏋️‍♂️ Fitness/Wellness Dashboard</h1>
     <div id="dashboard-layout" class="dashboard-grid">
       <section class="dashboard-zone dashboard-tasks">
-        <h2><span class="dashboard-icon">📋</span> Task Manager</h2>
+        <h2><span class="dashboard-icon">📋</span> Wellness Tasks</h2>
         <div class="dashboard-desc">Plan your daily or weekly exercises and track your fitness goals.</div>
         <div id="tasks-panel"></div>
       </section>
@@ -355,14 +353,14 @@ registerRoute('/dashboard', () => {
   bindComponentToStateWithDeps('TimeTracker', {}, timePanel);
 });
 
-// registerRoute('/theme-switcher', () => {
-//   const app = document.getElementById('app');
-//   if (currentComponent && currentComponent.unmount) {
-//     currentComponent.unmount();
-//     currentComponent = null;
-//   }
-//   renderComponent('ThemeSwitcher', {}, app);
-// });
+registerRoute('/theme-switcher', () => {
+  const app = document.getElementById('app');
+  if (currentComponent && currentComponent.unmount) {
+    currentComponent.unmount();
+    currentComponent = null;
+  }
+  renderComponent('ThemeSwitcher', {}, app);
+});
 
 // registerRoute('/heavy-component /lazy-demo', () => {
 //   const app = document.getElementById('app');
@@ -411,3 +409,51 @@ window.navigateTo = function(path, event) {
   history.pushState({}, '', path);
   navigateTo(path);
 };
+
+// Theme modal logic
+function showThemeModal() {
+  let modal = document.getElementById('theme-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'theme-modal';
+    modal.style = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);z-index:10000;display:flex;align-items:center;justify-content:center;';
+    modal.innerHTML = `
+      <div style="background:#fff;padding:32px 24px;border-radius:16px;min-width:320px;min-height:200px;position:relative;box-shadow:0 8px 32px #0002;">
+        <button id="close-theme-modal" style="position:absolute;top:8px;right:8px;font-size:20px;">✖</button>
+        <div id="theme-modal-content"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('close-theme-modal').onclick = () => {
+      modal.remove();
+    };
+    // Render ThemeSwitcher inside modal
+    renderComponent('ThemeSwitcher', {}, document.getElementById('theme-modal-content'));
+  }
+}
+document.getElementById('theme-modal-btn').onclick = showThemeModal;
+
+// Theme indicator logic
+function updateThemeIndicator() {
+  const mode = getState('themeMode');
+  const custom = getState('customTheme');
+  // search only in header
+  const indicator = document.querySelector('.header-row #theme-indicator');
+  if (!indicator) { console.log('theme-indicator not found in  header'); return; }
+  let color = '#fff';
+  if (mode === 'light') color = Config.theme.vars.light['--bg-color'];
+  else if (mode === 'dark') color = Config.theme.vars.dark['--bg-color'];
+  else if (mode === 'custom') color = custom['--bg-color'] || '#fff';
+  indicator.style.background = color;
+  console.log('theme-indicator in header, color:', color);
+}
+subscribe(['themeMode', 'customTheme'], updateThemeIndicator);
+setTimeout(updateThemeIndicator, 0);
+
+// Theme toast logic
+function showThemeToast() {
+  const toast = document.getElementById('theme-toast');
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, 1800);
+}
+subscribe('themeMode', showThemeToast);

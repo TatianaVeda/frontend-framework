@@ -36,10 +36,10 @@
           <span class="infra-emoji-list"><span class="infra-label">Infra:</span> All modules</span>
         </span>
       </button>
-      <button onclick="navigateTo('/api-demo')">
-        <span class="sidebar-label">🌐 API Demo</span>
+      <button onclick="navigateTo('/theme-switcher')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">🌓</span> Theme Switcher</span>
         <span class="emoji-block">
-          <span class="module-emoji-list">🌐 🖼️</span>
+          <span class="module-emoji-list">🗂️ ⚙️ 💾</span>
           <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
         </span>
       </button>
@@ -47,6 +47,34 @@
         <span class="sidebar-label"><span class="sidebar-demo-icon">☀️</span> Weather Widget</span>
         <span class="emoji-block">
           <span class="module-emoji-list">🗂️ 🌐 ⚡ 🖼️ 📝</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/time-tracker')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">⏱️</span> Time Tracker</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🗂️</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/chat')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">💬</span> WebSocket Chat</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🗂️ 🖼️</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/task-manager')">
+        <span class="sidebar-label"><span class="sidebar-demo-icon">📋</span> Wellness Tasks</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🗂️ ⚡</span>
+          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
+        </span>
+      </button>
+      <button onclick="navigateTo('/api-demo')">
+        <span class="sidebar-label">🌐 API Demo</span>
+        <span class="emoji-block">
+          <span class="module-emoji-list">🌐 🖼️</span>
           <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
         </span>
       </button>
@@ -61,20 +89,6 @@
         <span class="sidebar-label"><span class="sidebar-demo-icon">⚡</span> Events Demo</span>
         <span class="emoji-block">
           <span class="module-emoji-list">⚡ 🖼️</span>
-          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
-        </span>
-      </button>
-      <button onclick="navigateTo('/time-tracker')">
-        <span class="sidebar-label"><span class="sidebar-demo-icon">⏱️</span> Time Tracker</span>
-        <span class="emoji-block">
-          <span class="module-emoji-list">🗂️</span>
-          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
-        </span>
-      </button>
-      <button onclick="navigateTo('/task-manager')">
-        <span class="sidebar-label"><span class="sidebar-demo-icon">📋</span> Task Manager</span>
-        <span class="emoji-block">
-          <span class="module-emoji-list">🗂️ ⚡</span>
           <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
         </span>
       </button>
@@ -99,13 +113,6 @@
           <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
         </span>
       </button>
-      <button onclick="navigateTo('/chat')">
-        <span class="sidebar-label"><span class="sidebar-demo-icon">💬</span> WebSocket Chat</span>
-        <span class="emoji-block">
-          <span class="module-emoji-list">🗂️ 🖼️</span>
-          <span class="infra-emoji-list"><span class="infra-label">Infra:</span> 🧩 🧭 ⚙️  🛠️</span>
-        </span>
-      </button>
       <button onclick="navigateTo('/file-progress')">
         <span class="sidebar-label"><span class="sidebar-demo-icon">📁</span> Download Progress</span>
         <span class="emoji-block">
@@ -115,13 +122,13 @@
       </button>
     </aside>
     <div class="main-content">
+      <div class="header-row">
+        <button class="home-btn" onclick="navigateTo('/', event)">🏠 Home</button>
+        <button id="theme-modal-btn" class="home-btn" title="Switch theme">🌓 Switch <span id="theme-indicator" class="theme-indicator-circle"></span></button>
+        <h1>Frontend-FrameWork Demo</h1>
+      </div>
       <main id="app"></main>
       <header>
-        <div class="header-row">
-          <a href="/theme-switcher" onclick="navigateTo('/theme-switcher', event)">Theme</a>
-          <button class="home-btn" onclick="navigateTo('/', event)">🏠 Home</button>
-          <h1>Frontend-FrameWork Demo</h1>
-        </div>
         <section class="modules-list-section">
           <h2>MODULES IN USE:</h2>
             <div class="modules-list-grid">
@@ -209,6 +216,7 @@
 
   <!-- Main application script -->
   <script type="module" src="example/main.js"></script>
+  <div id="theme-toast" style="display:none;position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:12px 24px;border-radius:8px;z-index:9999;">Theme changed!</div>
 </body>
 
 <footer>
