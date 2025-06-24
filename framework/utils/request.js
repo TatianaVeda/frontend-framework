@@ -1,4 +1,4 @@
-// /dot-js/frontend/dot-js/framework/utils/request.js
+//frontend-framework/framework/utils/request.js
 
 import Logger from '../logger.js'; // make sure Logger is imported, if used
 export const memoryCache = new Map(); // In-memory cache for storing responses (Map)

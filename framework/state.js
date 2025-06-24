@@ -146,8 +146,7 @@ export function subscribe(keys, callback) {
     }
   } else {
     throw new Error("Subscription key must be a string or an array of strings");
-    throw new Error("Subscription key must be a string or an array of strings");
-  }
+    }
 }
 
 /**

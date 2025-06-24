@@ -29,7 +29,6 @@ import { ThemeSwitcher } from './components/ThemeSwitcher.js';
 // Import new components (let them be, for example, in the example/components/extra/ folder)
 import { Chat } from './components/extra/Chat.js';
 import { FileProgressDemo } from './components/extra/FileProgressDemo.js';
-import { FileProgressDemo } from './components/extra/FileProgressDemo.js';
 
 // New components
 import { initWeatherWidget } from './components/WeatherWidget.js';

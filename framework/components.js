@@ -109,8 +109,7 @@ function runBatchUpdates() {
       fn();
     } catch (err) {
       Logger.error('Error in batch update:', err);
-      Logger.error('Error in batch update:', err);
-    }
+     }
   });
   pendingBatchUpdates = [];
   isBatchScheduled = false;

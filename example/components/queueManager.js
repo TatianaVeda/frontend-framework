@@ -3,7 +3,7 @@ import { getState, setState, subscribe, unsubscribe } from 'framework/state.js';
 import { delegateEvent, removeDelegateEventsByNamespace } from 'framework/events.js';
 
 let isFirstMount = true;
-let isFirstMount = true;
+
 
 export function TaskManager() {
   const today = new Date();
