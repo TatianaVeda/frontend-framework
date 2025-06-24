@@ -3,6 +3,7 @@ import { getState, setState, subscribe, unsubscribe } from 'framework/state.js';
 import { delegateEvent, removeDelegateEventsByNamespace } from 'framework/events.js';
 
 let isFirstMount = true;
+let isFirstMount = true;
 
 export function TaskManager() {
   const today = new Date();
@@ -47,12 +48,14 @@ export function TaskManager() {
     const virtualTasks = VirtualList({
       items: getState('tasks'),
       renderItem: (item, index) => {
+        // Create item container
         const containerEl = document.createElement('div');
         containerEl.className = 'task-item';
         containerEl.style.width = '100%';
         containerEl.style.boxSizing = 'border-box';
         containerEl.dataset.id = item.id;
 
+        // Display item number
         const numberEl = document.createElement('span');
         numberEl.textContent = `${index + 1}.`;
         numberEl.style.marginRight = '0.5em';
@@ -167,6 +170,7 @@ export function TaskManager() {
           },
           { namespace: 'task-manager' }
         );
+        // Delegate click on Delete buttons
         delegateEvent(
           container,
           'click',
@@ -187,6 +191,7 @@ export function TaskManager() {
           },
           { namespace: 'task-manager' }
         );
+        // Delegate blur on inputs to save edits
         delegateEvent(
           container,
           'blur',

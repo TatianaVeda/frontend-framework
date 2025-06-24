@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en"> <!-- Translated lang attribute to English -->
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Frontend-framework demo</title>
   <base href="/">
+   <link rel="stylesheet" href="example/styles.css">
+  <!-- Apple touch icon -->
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <!-- Favicons -->
   <link rel="icon"            sizes="32x32"    href="/favicon-32x32.png">
   <link rel="icon"            sizes="16x16"    href="/favicon-16x16.png">
   <link rel="manifest"                    href="/site.webmanifest">
@@ -21,8 +24,7 @@
         "example/": "./"
       }
     }
-    </script>
-    
+  </script>
 </head>
 <body>
   <div class="app-layout">
@@ -116,6 +118,7 @@
       <main id="app"></main>
       <header>
         <div class="header-row">
+          <a href="/theme-switcher" onclick="navigateTo('/theme-switcher', event)">Theme</a>
           <button class="home-btn" onclick="navigateTo('/', event)">🏠 Home</button>
           <h1>Frontend-FrameWork Demo</h1>
         </div>
@@ -203,16 +206,19 @@
     </div>
   </div>
   <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Main application script -->
   <script type="module" src="example/main.js"></script>
 </body>
- <footer>
+
+<footer>
   <section class="icons-demo">
-    <h2>Icons</h2>
+    <!-- Section showing available icons -->
+    <h2>Our Icons</h2> <!-- Translated heading -->
     <img src="/favicon-16x16.png" alt="16×16">
     <img src="/favicon-32x32.png" alt="32×32">
     <img src="/android-chrome-192x192.png" alt="192×192">
-   <!-- <img src="/android-chrome-512x512.png" alt="512×512">  -->
+   
   </section>
-</footer>   
-
+</footer>
 </html>
