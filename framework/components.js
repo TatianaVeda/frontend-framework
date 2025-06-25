@@ -1,8 +1,6 @@
 import {
   subscribe,
   unsubscribe,
-  getState,
-  setState,
   beginDependencyCollection,
   endDependencyCollection
 } from 'framework/state.js';
@@ -38,7 +36,7 @@ export function renderVNode(vnode, isInSvg = false) {
     return vnode;
   }
 
-  // Element node: выбираем namespace
+  // Element node: select namespace
   let el;
   if (vnode.tag === 'svg') {
     el = document.createElementNS(SVG_NS, 'svg');
@@ -54,21 +52,21 @@ export function renderVNode(vnode, isInSvg = false) {
     el.setAttribute("data-key", vnode.key);
   }
 
-  // Props / атрибуты (включая class через setAttribute)
+  // Props / attributes (including class via setAttribute)
   if (vnode.props) {
     Object.entries(vnode.props).forEach(([attr, value]) => {
       el.setAttribute(attr, value);
     });
   }
 
-  // Слушатели событий
+  // Event listeners
   if (vnode.events) {
     Object.entries(vnode.events).forEach(([eventName, handler]) => {
       el.addEventListener(eventName, handler);
     });
   }
 
-  // Дети
+  // Children
   let children = vnode.children;
   if (children != null && !Array.isArray(children)) {
     children = [children];
