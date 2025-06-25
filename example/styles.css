@@ -227,9 +227,7 @@ button:disabled {
 /* ===== BASE STYLES ===== */
 * { box-sizing: border-box; }
 body { font-family: Arial, sans-serif; line-height: 1.6; margin: 4px; padding: 4px; background: #f5f5f5; color: #333; }
-h1 { color: #333; margin-bottom: 30px; text-align: center; }
-h2 { color: #333; margin-bottom: 20px; }
-h3 { color: #555; margin-bottom: 15px; }
+h1, h2, h3 { color: var(--text-color); }
 
 /* ===== MODULES, PANELS, CARDS ===== */
 .framework-info, .modules-panel, .demo-panel {
@@ -598,8 +596,8 @@ h3 { color: #555; margin-bottom: 15px; }
   box-sizing: border-box;
 }
 
-/* Dashboard grid layout: всегда 2 колонки (2x2), на мобильных — 1 колонка */
-.dashboard-grid {
+/* Dashboard grid layout: always 2 columns (2x2), on mobile — 1 column */
+ .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(400px, 1fr));
   grid-template-rows: 1fr 1fr;
@@ -618,76 +616,15 @@ h3 { color: #555; margin-bottom: 15px; }
   }
 }
 .dashboard-zone {
-  background: var(--card-bg);
-  color: var(--text-color);
-  border-radius: 18px;
-  box-shadow: 0 2px 16px 0 rgba(80, 80, 120, 0.08), 0 1.5px 4px 0 rgba(80, 80, 120, 0.06);
-  padding: 0.4rem 0.4rem 0.4rem 0.4rem;
-  display: flex;
-  flex-direction: column;
-  min-height: 50px;
-  min-width: 0;
-  transition: box-shadow 0.2s, background 0.2s;
-  font-size: 0.9em;
-}
-.dashboard-zone h2 {
-  font-size: 1.0rem;
-  font-weight: 600;
-  margin-bottom: 0.4rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  color: var(--text-color);
-}
-.dashboard-icon {
-  font-size: 1.4em;
-  vertical-align: middle;
-}
-
-/* Responsive: stack on mobile */
-@media (max-width: 900px) {
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(4, auto);
-    gap: 1rem;
-    padding: 1rem;
-  }
-  .dashboard-zone {
-    min-height: 220px;
-    padding: 1rem 0.7rem 0.7rem 0.7rem;
-  }
-}
-
-/* Стили для интеграции с главной страницей */
-.dashboard-zone, .dashboard-grid {
-  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  background: var(--main-bg, #fff);
-}
-
-/* Стили для кнопок и инпутов внутри виджетов (унаследовано) */
-.dashboard-zone button, .dashboard-zone input, .dashboard-zone select {
-  font-family: inherit;
-  font-size: 1em;
-  border-radius: 8px;
-  border: 1px solid #d1d5db;
-  padding: 0.4em 0.8em;
-  margin: 0.1em 0.2em;
-  background: #f7f7fa;
-  transition: background 0.15s, box-shadow 0.15s;
-}
-.dashboard-zone button:hover {
-  background: #ece9fa;
-  box-shadow: 0 1px 4px 0 rgba(80, 80, 120, 0.08);
-}
-
-/* Для лучшего разделения — небольшие тени и отступы */
-.dashboard-zone:not(:last-child) {
-  margin-bottom: 0.5rem;
-}
+  background: var(--bg-color) !important;
+  /* background: var(--card-bg) !important;*/
+  color: var(--text-color) !important;
+ 
+} 
 
 /* ===== USER-FRIENDLY DASHBOARD & WIDGETS STYLES ===== */
 
-/* === Единый стиль для всех кнопок приложения (только внутри контента) === */
+/* === General style for all buttons in the application (only inside content) === */
 .page button,
 .task-manager button,
 .chat-page button,
@@ -744,7 +681,7 @@ h3 { color: #555; margin-bottom: 15px; }
   color: var(--btn-text);
 }
 
-/* Для мобильных — кнопки на всю ширину */
+/* For mobile — buttons full width */
 @media (max-width: 900px) {
   .page button,
   .task-manager button,
@@ -760,7 +697,7 @@ h3 { color: #555; margin-bottom: 15px; }
   }
 }
 
-/* Убрать дублирующие правила для .task-actions, .task-manager, .chat-page, .time-tracker */
+/* Remove duplicate rules for .task-actions, .task-manager, .chat-page, .time-tracker */
 .task-actions {
   display: flex;
   flex-wrap: wrap;
@@ -769,7 +706,7 @@ h3 { color: #555; margin-bottom: 15px; }
   justify-content: flex-start;
 }
 
-/* Стили для Add Task — такой же, как у остальных кнопок */
+/* Styles for Add Task — same as for other buttons */
 .task-manager .add-task-btn, .task-manager button.add-task-btn {
   min-width: 110px;
   max-width: 180px;
@@ -777,44 +714,7 @@ h3 { color: #555; margin-bottom: 15px; }
   padding: 0.45em 1.1em;
 }
 
-/* Стили для специальных кнопок (например, search-btn в Weather Widget) — оставить индивидуально */
-.weather-widget .search-btn {
-  width: 44px;
-  min-width: 44px;
-  max-width: 44px;
-  padding: 0.4em 0.2em;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  white-space: nowrap;
-}
-
-/* Weather Widget: всегда контрастный текст, фон градусника — белый для тёмной темы */
-.weather-display {
-  background: #fff;
-  color: var(--text-color);
-  border-radius: 8px;
-  border: 1.5px solid #222;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  transition: all 0.35s cubic-bezier(.4,2,.6,1);
-}
-@media (prefers-color-scheme: dark) {
-  .weather-display {
-    background: #fff;
-    color: #222;
-    border: 1.5px solid #444;
-  }
-}
-.temperature, .condition, .weather-display span, .weather-display h2 {
-  color: var(--text-color) !important;
-}
-
-/* Weather Widget: все кнопки используют переменные темы */
+/* Weather Widget: all buttons use theme variables */
 .weather-widget button,
 .weather-widget .city-btn,
 .weather-widget .search-btn {
@@ -841,8 +741,8 @@ h3 { color: #555; margin-bottom: 15px; }
   box-shadow: 0 1px 4px 0 rgba(80, 80, 120, 0.08);
 }
 
-/* Фон внутри виджетов и dashboard */
-.weather-widget,
+/* Background inside widgets and dashboard*/
+ .weather-widget,
 .dashboard-zone,
 .page,
 .notifications,
@@ -858,8 +758,8 @@ h3 { color: #555; margin-bottom: 15px; }
   background: var(--card-bg) !important;
   color: var(--text-color);
 }
-
-/* Заголовки виджетов всегда контрастные */
+ 
+/* Headers of widgets always contrast */ 
 .dashboard-zone h2,
 .weather-widget h2,
 .page h2,
@@ -870,3 +770,11 @@ h3 { color: #555; margin-bottom: 15px; }
 .time-tracker h2 {
   color: var(--text-color) !important;
 }
+
+.modal-window {
+  background: var(--card-bg) !important;
+  color: var(--text-color, #fff) !important;
+  box-shadow: 0 8px 32px #0002;
+  opacity: 1 !important;
+}
+ 

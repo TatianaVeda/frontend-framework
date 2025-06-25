@@ -418,7 +418,7 @@ function showThemeModal() {
     modal.id = 'theme-modal';
     modal.style = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);z-index:10000;display:flex;align-items:center;justify-content:center;';
     modal.innerHTML = `
-      <div style="background:#fff;padding:32px 24px;border-radius:16px;min-width:320px;min-height:200px;position:relative;box-shadow:0 8px 32px #0002;">
+      <div class="modal-window" style="padding:32px 24px;border-radius:16px;min-width:320px;min-height:200px;position:relative;box-shadow:0 8px 32px #0002;">
         <button id="close-theme-modal" style="position:absolute;top:8px;right:8px;font-size:20px;">✖</button>
         <div id="theme-modal-content"></div>
       </div>
