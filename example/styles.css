@@ -596,7 +596,7 @@ h1, h2, h3 { color: var(--text-color); }
   box-sizing: border-box;
 }
 
-/* Dashboard grid layout: always 2 columns (2x2), on mobile — 1 column */
+/* Dashboard grid layout: всегда 2 колонки (2x2), на мобильных — 1 колонка */
  .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(400px, 1fr));
@@ -624,7 +624,7 @@ h1, h2, h3 { color: var(--text-color); }
 
 /* ===== USER-FRIENDLY DASHBOARD & WIDGETS STYLES ===== */
 
-/* === General style for all buttons in the application (only inside content) === */
+/* === Единый стиль для всех кнопок приложения (только внутри контента) === */
 .page button,
 .task-manager button,
 .chat-page button,
