@@ -32,7 +32,7 @@ import { FileProgressDemo } from './components/extra/FileProgressDemo.js';
 
 // New components
 import { initWeatherWidget } from './components/WeatherWidget.js';
-
+import { lazyMount } from 'framework/utils/lazyMount.js';
 //WORK
 
 // import { ThemeSwitcher } from './components/extra/ThemeSwitcher.js';
@@ -204,10 +204,25 @@ registerRoute('/task-manager', () => {
   currentComponent = bindComponentToStateWithDeps('TaskManager', {}, app);
 });
 
-registerRoute('/performance', () => {
+// → Code-splitting + lazy mount for /performance
+registerRoute('/performance', async () => {
   const app = document.getElementById('app');
   if (currentComponent?.unmount) currentComponent.unmount();
-  currentComponent = bindComponentToStateWithDeps('PerformanceDashboard', {}, app);
+
+  // динамически подгружаем модуль
+  const { PerformanceDashboard } = await import(
+    /* webpackChunkName: "performance-dashboard" */
+    './components/performanceDashboard.js'
+  );
+  // регистрируем в системе компонентов
+  defineComponent('PerformanceDashboard', PerformanceDashboard);
+
+  // создаём контейнер и отложенно монтируем
+  const container = document.createElement('div');
+  app.appendChild(container);
+  lazyMount(container, () => {
+    currentComponent = bindComponentToStateWithDeps('PerformanceDashboard', {}, container);
+  });
 });
 
 registerRoute('/api-demo', () => {
@@ -234,11 +249,39 @@ registerRoute('/form-demo', () => {
   renderComponent('FormDemo', {}, app);
 });
 
+// → Code-splitting + lazy mount для /icons
 registerRoute('/icons', () => {
   const app = document.getElementById('app');
-  if (currentComponent?.unmount) currentComponent.unmount();
-  renderComponent('IconDemo', {}, app);
+
+  // 1. Show loading indicator
+  app.innerHTML = `
+    <div class="loading-indicator">
+      <p>🔄 Loading IconDemo module…</p>
+    </div>
+  `;
+
+  // 2. Create a container where the component will be rendered
+  const container = document.createElement('div');
+  container.id = 'iconsLazyContainer';
+  app.appendChild(container);
+
+  // 3. Lazy import and mount when it appears
+  lazyMount(container, async () => {
+    // Dynamic import (webpack will create a separate chunk)
+    const { IconDemo } = await import(
+      /* webpackChunkName: "icon-demo" */
+      './components/IconDemo.js'
+    );
+    defineComponent('IconDemo', IconDemo);
+
+    // 4. Remove the loading indicator and render the component
+    const loader = app.querySelector('.loading-indicator');
+    if (loader) loader.remove();
+
+    renderComponent('IconDemo', {}, container);
+  });
 });
+
 
 // Route with dynamic :key parameter for icon detail
 registerRoute('/icons/:key', (route) => {

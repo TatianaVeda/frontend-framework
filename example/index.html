@@ -5,7 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Frontend-framework demo</title>
   <base href="/">
-   <link rel="stylesheet" href="example/styles.css">
+    <!-- Asynchronously load main CSS -->
+  <link
+    rel="preload"
+    href="example/styles.css"
+    as="style"
+    onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="example/styles.css">
+  </noscript>
   <!-- Apple touch icon -->
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <!-- Favicons -->
@@ -223,10 +231,11 @@
   <section class="icons-demo">
     <!-- Section showing available icons -->
     <h2>Our Icons</h2> <!-- Translated heading -->
-    <img src="/favicon-16x16.png" alt="16×16">
-    <img src="/favicon-32x32.png" alt="32×32">
-    <img src="/android-chrome-192x192.png" alt="192×192">
-   
+    <img loading="lazy" src="/favicon-16x16.png" alt="16×16">
+    <img loading="lazy" src="/favicon-32x32.png" alt="32×32">
+    <img loading="lazy" src="/android-chrome-192x192.png" alt="192×192">
+
+
   </section>
 </footer>
 </html>

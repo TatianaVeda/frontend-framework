@@ -9,7 +9,14 @@
  * @returns {Element} The newly created element.
  */
 export function createElement(tagName, attributes = {}) {
+  //const element = document.createElement(tagName);
   const element = document.createElement(tagName);
+
+  // By default, enable lazy-loading for <img> elements if the 
+  // loading attribute is not explicitly provided.
+  if (tagName.toLowerCase() === 'img' && attributes.loading == null) {
+    element.setAttribute('loading', 'lazy');
+  }
 
   Object.entries(attributes).forEach(([key, value]) => {
     if (key === 'class') {

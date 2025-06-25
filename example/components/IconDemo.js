@@ -1,11 +1,22 @@
+// /frontend-framework/example/components/IconDemo.js
+
 import {
-  createElement, appendChild, setStyle, clearChildren
+  createElement,
+  appendChild,
+  setStyle,
+  clearChildren
 } from 'framework/dom.js';
-import { getState, setState, subscribe, unsubscribe } from 'framework/state.js';
+import {
+  getState,
+  setState,
+  subscribe,
+  unsubscribe
+} from 'framework/state.js';
 import { delegateEvent } from 'framework/events.js';
+import { lazyImageLoader } from 'framework/utils/lazyMount.js';
 
 export function IconDemo() {
-  // Define built-in icons with keys, source paths, and alt text
+  // 1) Built-in icons
   const builtInIcons = [
     { key: 'android192', src: '/android-chrome-192x192.png', alt: 'Android 192×192' },
     { key: 'android512', src: '/android-chrome-512x512.png', alt: 'Android 512×512' },
@@ -14,22 +25,22 @@ export function IconDemo() {
     { key: 'fav32',     src: '/favicon-32x32.png',       alt: 'Favicon 32×32' }
   ];
 
-  // Initialize click counts in state if not already present
+  // 2) Initialize click counters
   const clicks = getState('iconClicks') || {};
   builtInIcons.forEach(({ key }) => {
     if (clicks[key] == null) clicks[key] = 0;
   });
   setState('iconClicks', clicks);
 
-  // Initialize icon names state (empty object if none)
+  // 3) Initialize names
   const names = getState('iconNames') || {};
   setState('iconNames', names);
 
-  // Initialize user-uploaded icons state (empty array if none)
+  // 4) Initialize user-uploaded icons
   const uploaded = getState('userIcons') || [];
   setState('userIcons', uploaded);
 
-  // Create the main container element with grid styling
+  // 5) Create grid container
   const container = createElement('div');
   setStyle(container, {
     display: 'grid',
@@ -38,7 +49,7 @@ export function IconDemo() {
     padding: '16px'
   });
 
-  // Function to render all icons (built-in + uploaded) into the container
+  // 6) Render all icons
   function renderIcons() {
     clearChildren(container);
 
@@ -52,31 +63,35 @@ export function IconDemo() {
     ];
 
     allIcons.forEach(({ key, src, alt }) => {
-      // Create a wrapper for each icon
+      // 6.1) Wrapper
       const wrapper = createElement('div', {
         'data-icon-key': key,
         class: 'icon-wrapper'
       });
 
-      // Determine display name (custom or default alt text)
+      // 6.2) Lazy image: placeholder + data-src
       const displayName = stateNames[key] || alt;
       const img = createElement('img', {
-        src,
+        'data-icon-key': key,
+        'data-src': src,
+        src: 'data:image/gif;base64,R0lGODlhAQABAIAAAAUEBA==',
         alt: displayName,
         title: displayName,
         width: '64',
         height: '64'
       });
+      img.classList.add('lazy-img');
+      appendChild(wrapper, img);
 
-      // Show the click count below the image
+      // Start lazy loading
+      setTimeout(() => lazyImageLoader(img), 0);
+
+      // 6.3) Click counter
       const counter = createElement('div');
       counter.textContent = `Clicks: ${stateClicks[key] || 0}`;
-      counter.textContent = `Clicks: ${stateClicks[key] || 0}`;
-
-      appendChild(wrapper, img);
       appendChild(wrapper, counter);
 
-      // If this icon was uploaded by the user, add a delete button
+      // 6.4) Delete button for uploaded icons
       const isUploaded = stateUploaded.some(item => item.key === key);
       if (isUploaded) {
         const delBtn = createElement('button', {
@@ -94,7 +109,6 @@ export function IconDemo() {
           fontSize: '12px'
         });
         delBtn.textContent = 'Delete';
-        delBtn.textContent = 'Delete';
         appendChild(wrapper, delBtn);
       }
 
@@ -102,19 +116,19 @@ export function IconDemo() {
     });
   }
 
-  // Subscribe to state changes to re-render icons when data updates
+  // 7) Subscribe to state updates
   const update = () => renderIcons();
   subscribe('iconClicks', update);
   subscribe('iconNames',  update);
   subscribe('userIcons',  update);
 
-  // Utility to generate unique keys for uploaded icons
+  // 8) Generate unique key for new uploads
   let nextUploadId = Date.now();
   function generateUploadKey() {
     return 'upload_' + (nextUploadId++);
   }
 
-  // Handle file uploads: read as data URL and add to state
+  // 9) Handle file upload
   function handleFileUpload(file) {
     const reader = new FileReader();
     reader.onload = () => {
@@ -130,13 +144,12 @@ export function IconDemo() {
     reader.readAsDataURL(file);
   }
 
+  // 10) Return VNode
   return {
     tag: 'div',
     props: { class: 'page icon-demo' },
     children: [
-      // Header for the icon demo page
-      { tag: 'h2', children: 'Icons with Reactive Counters' },
-      // File uploader UI for custom icons
+      { tag: 'h2', children: 'Reactive Icon Counters' },
       {
         tag: 'div',
         props: { class: 'uploader', style: 'margin-bottom:16px;' },
@@ -159,19 +172,16 @@ export function IconDemo() {
     }
   ]
 }
-
-        ]
+ ]
       },
-      // The dynamically rendered icon grid container
       container
     ],
     lifecycle: {
       mount: (node) => {
         console.info('IconDemo mounted');
-        console.info('IconDemo mounted');
         renderIcons();
 
-        // Delegate click on any icon (except delete) to increment count and navigate
+        // 11) Delegate icon clicks
         delegateEvent(
           container,
           'click',
@@ -185,7 +195,7 @@ export function IconDemo() {
           }
         );
 
-        // Delegate click on delete button to remove uploaded icon and its data
+        // 12) Delegate delete for uploaded icons
         delegateEvent(
           container,
           'click',
@@ -208,7 +218,7 @@ export function IconDemo() {
           }
         );
 
-        // Attach file input change handler for uploading images
+        // 13) File input handler
         const fileInput = node.querySelector('#fileInput');
         if (fileInput) {
           fileInput.addEventListener('change', (e) => {
@@ -219,13 +229,10 @@ export function IconDemo() {
         }
       },
       unmount: (node) => {
-        // Unsubscribe from all state updates on unmount
         unsubscribe('iconClicks', update);
         unsubscribe('iconNames',  update);
         unsubscribe('userIcons',  update);
         console.info('IconDemo unmounted');
-        // If needed, remove delegated events:
-        // removeDelegateEventsByNamespace(container, 'icon-demo');
       }
     }
   };
