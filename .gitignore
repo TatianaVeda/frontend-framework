@@ -5,25 +5,24 @@ node_modules/
 *.log
 logs/
 
-# Временные файлы
+# Temporary files
 tmp/
 temp/
 
-# Файлы окружения
+# Environment files
 .env
 
-# Директории сборки
+# Build directories
 dist/
 build/
 
-# IDE и редакторы
+# IDE and editors
 .idea/
 .vscode/
 *.sublime-workspace
 *.sublime-project
-example/index.backup.html
-example/styles.backup.css
 
-# Файлы системы
+
+# System files
 .DS_Store
 Thumbs.db

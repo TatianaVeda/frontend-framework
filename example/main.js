@@ -317,7 +317,7 @@ registerRoute('/dashboard', () => {
     <h1 class="dashboard-title">🏋️‍♂️ Fitness/Wellness Dashboard</h1>
     <div id="dashboard-layout" class="dashboard-grid">
       <section class="dashboard-zone dashboard-tasks">
-        <h2><span class="dashboard-icon">📋</span> Wellness Tasks</h2>
+        <h2><span class="dashboard-icon">📋</span> Task Manager</h2>
         <div class="dashboard-desc">Plan your daily or weekly exercises and track your fitness goals.</div>
         <div id="tasks-panel"></div>
       </section>

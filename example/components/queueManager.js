@@ -135,7 +135,7 @@ export function TaskManager() {
     tag: 'div',
     props: { class: 'task-manager page' },
     children: [
-      { tag: 'h2', children: 'Task Manager' },
+      { tag: 'h2', children: 'Welness Tasks' },
       { tag: 'div', props: { class: 'task-date' }, children: [`Today: ${dateStr}`] },
       { tag: 'button', events: { click: addTask }, children: 'Add Task' },
       { tag: 'div', props: { id: 'tasks-container' }, children: [] }
