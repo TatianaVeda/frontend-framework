@@ -129,8 +129,8 @@ registerHooks('/queue', {
 
 // Define the Home component
 defineComponent('Home', () => {
-  // const notifications = getState('notifications') || [];
-  // const lastNotification = notifications.length > 0 ? notifications[notifications.length - 1] : null;
+   const notifications = getState('notifications') || [];
+   const lastNotification = notifications.length > 0 ? notifications[notifications.length - 1] : null;
   return {
     tag: 'div',
     props: { class: 'page' },
@@ -146,21 +146,23 @@ defineComponent('Home', () => {
           { tag: 'li', children: "🏠 Use the navigation buttons above or the menu on the left to discover all features." }
         ]
       },
-      // {
-      //   tag: 'button',
-      //   events: {
-      //     click: () => {
-      //       const msgs = getState('notifications') || [];
-      //       setState('notifications', [...msgs, '🎉 You pressed the button! This is a test notification.']);
-      //     }
-      //   },
-      //   children: 'Add a fun notification!'
-      // },
-      // lastNotification ? {
-      //   tag: 'div',
-      //   props: { style: 'margin-top:1em;font-size:1.05em;color:#555;' },
-      //   children: [ "🔔 Last notification: ", { tag: 'b', children: lastNotification } ]
-      // } : null
+      {
+        tag: 'button',
+        events: {
+          click: (event) => {
+            const msgs = getState('notifications') || [];
+            setState('notifications', [...msgs, '🎉 You pressed the button! This is a test notification.']);
+            window.navigateTo('/events-demo', event);
+          }
+        },
+        children: 'Add notification and navigate'
+      },
+      lastNotification ? {
+        tag: 'div',
+        props: { style: 'margin-top:1em;font-size:1.05em;color:#555;' },
+        children: [ "🔔 Last notification: ", { tag: 'b', children: lastNotification } ]
+      } : null
+
     ]
   };
 });
