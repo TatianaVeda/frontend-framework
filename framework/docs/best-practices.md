@@ -1,13 +1,19 @@
 # Best Practices and Guidelines for Building Applications with the Framework
 
-This document provides practical recommendations, code examples, and explanations to help you build robust and maintainable applications using the framework.
+This document provides practical recommendations, code examples, and explanations to help you build robust and maintainable applications using the Framework.
 
 ---
 
-## 1. Use Declarative Event Binding
+## Navigation
+- [Best Practices](#best-practices)
+- [Common Mistakes to Avoid](#common-mistakes-to-avoid)
 
-**Best practice:**  
-Always define event handlers using the `events` property in your component's virtual DOM structure, rather than calling `addEventListener` directly.
+---
+
+## Best Practices
+
+### 1. Use Declarative Event Binding
+Always define event handlers using the `events` property in your component's virtual DOM structure, rather than calling `addEventListener` directly. This ensures event listeners are managed automatically as part of the component lifecycle.
 
 **Example:**
 ```javascript
@@ -19,14 +25,9 @@ defineComponent('MyButton', () => ({
   children: 'Click me'
 }));
 ```
-This ensures event listeners are managed automatically as part of the component lifecycle.
 
----
-
-## 2. Centralize Application State
-
-**Best practice:**  
-Use the provided state management utilities (`getState`, `setState`, `subscribe`) to share and synchronize data between components.
+### 2. Centralize Application State
+Use the provided state management utilities (`getState`, `setState`, `subscribe`) to share and synchronize data between components. Centralized state helps avoid duplicated logic and keeps your UI in sync.
 
 **Example:**
 ```javascript
@@ -35,14 +36,10 @@ subscribe('count', () => {
   // React to state changes
 });
 ```
-Centralized state helps avoid duplicated logic and keeps your UI in sync.
 
----
 
-## 3. Use Event Delegation for Dynamic Lists
-
-**Best practice:**  
-For lists or dynamic content, use event delegation to attach a single event listener to a parent element.
+### 3. Use Event Delegation for Dynamic Lists
+For lists or dynamic content, use event delegation to attach a single event listener to a parent element. This improves performance and reduces memory usage for large or frequently changing lists.
 
 **Example:**
 ```javascript
@@ -54,13 +51,9 @@ delegateEvent(document.getElementById('list'), 'click', 'li', (event) => {
 ```
 This improves performance and reduces memory usage for large or frequently changing lists.
 
----
 
-## 4. Manage Routing Declaratively
-
-**Best practice:**  
-Register routes and navigation handlers using the router utilities.  
-Let the framework handle URL changes and state synchronization.
+### 4. Manage Routing Declaratively
+Register routes and navigation handlers using the router utilities. Let the framework handle URL changes and state synchronization.
 
 **Example:**
 ```javascript
@@ -69,13 +62,8 @@ navigateTo('/about');
 ```
 This keeps your navigation logic clean and maintainable.
 
----
-
-## 5. Handle Asynchronous Data Reactively
-
-**Best practice:**  
-Fetch data asynchronously and store it in shared state.  
-Subscribe to state changes to update your UI automatically.
+### 5. Handle Asynchronous Data Reactively
+Fetch data asynchronously and store it in shared state. Subscribe to state changes to update your UI automatically.
 
 **Example:**
 ```javascript
@@ -87,12 +75,8 @@ subscribe('apiData', () => {
 });
 ```
 
----
-
-## 6. Use Lazy Rendering for Large DOM Structures
-
-**Best practice:**  
-Enable lazy rendering for heavy lists or components that do not need to be in the DOM immediately.
+### 6. Use Lazy Rendering for Large DOM Structures
+Enable lazy rendering for heavy lists or components that do not need to be in the DOM immediately. This improves performance for large or scrollable content.
 
 **Example:**
 ```javascript
@@ -104,13 +88,8 @@ dom: {
   }
 }
 ```
-This improves performance for large or scrollable content.
 
----
-
-## 7. Prevent Default Behavior and Event Bubbling When Needed
-
-**Best practice:**  
+### 7. Prevent Default Behavior and Event Bubbling When Needed
 Use `event.preventDefault()` and `event.stopPropagation()` in your handlers to control browser behavior and event flow.
 
 **Example:**
@@ -126,55 +105,32 @@ defineComponent('FormDemo', () => ({
 }));
 ```
 
----
-
-## 8. Profile and Validate Performance
-
-**Best practice:**  
+### 8. Profile and Validate Performance
 Use browser DevTools and manual benchmarks to validate the performance of your application, especially after introducing new features or handling large data sets.
 
----
+### 9. Keep Components Small and Focused
+Design components to do one thing well. Reuse and compose components for complex UIs.
 
-## 9. Keep Components Small and Focused
-
-**Best practice:**  
-Design components to do one thing well.  
-Reuse and compose components for complex UIs.
-
----
-
-## 10. Document Your Components and State
-
-**Best practice:**  
+### 10. Document Your Components and State
 Add comments and documentation to your components and state keys, so other developers can easily understand and maintain your code.
 
----
-
-By following these guidelines, you will build applications that are maintainable, performant, and easy to extend using this framework.
-
-
-# Best Practices
-
-## General Guidelines
+### General Guidelines
 - Keep components small and focused
 - Use state and persistent state wisely
 - Prefer CSS variables for theming
 
-## Theming
-- How to create accessible and flexible themes
+### Theming
+- Create accessible and flexible themes
 - Use only theme variables for colors
 
-## State Management
+### State Management
 - Avoid global mutations
 - Use subscribe/setState for reactivity
 
-## Extending
-- How to add features without breaking existing code
+### Extending
+- Add features without breaking existing code
 
-## Common Pitfalls
-- What to avoid
-- Examples of anti-patterns 
-
+---
 
 ## Common Mistakes to Avoid
 
@@ -206,4 +162,4 @@ By following these guidelines, you will build applications that are maintainable
 
 ---
 
-Following these guidelines will help you avoid common pitfalls and build more reliable, maintainable applications with the framework.
+Following these guidelines will help you avoid common pitfalls and build more reliable,performant, maintainable and easy to extend application, using this framework.

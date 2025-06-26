@@ -35,14 +35,6 @@ import { initWeatherWidget } from './components/WeatherWidget.js';
 
 //WORK
 
-// import { ThemeSwitcher } from './components/extra/ThemeSwitcher.js';
-// import { HeavyComponent } from './components/extra/HeavyComponent.js';
-// import { OfflineDemo } from './components/extra/OfflineDemo.js';
-// import { UndoRedoDemo } from './components/extra/UndoRedoDemo.js';
-// import { ValidatedForm } from './components/extra/ValidatedForm.js';
-// import { I18nDemo } from './components/extra/I18nDemo.js';
-// import { Calendar } from 'framework/plugins/calendar.js'; // if plugin is there
-
 // Initialize persistent state for saving state between sessions
 initPersistentState();
 
