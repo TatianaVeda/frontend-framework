@@ -128,25 +128,42 @@ registerHooks('/queue', {
 });
 
 // Define the Home component
-defineComponent('Home', () => ({
-  tag: 'div',
-  props: { class: 'page' },
-  children: [
-    { tag: 'h2', children: 'Welcome!' },
-        {
-      tag: 'button',
-      events: {
-        click: (event) => {
-          const msgs = getState('notifications') || [];
-          setState('notifications', [...msgs, 'New notification from Home']);
-        
-          window.navigateTo('/events-demo', event);
-        }
+defineComponent('Home', () => {
+  // const notifications = getState('notifications') || [];
+  // const lastNotification = notifications.length > 0 ? notifications[notifications.length - 1] : null;
+  return {
+    tag: 'div',
+    props: { class: 'page' },
+    children: [
+      { tag: 'h2', children: 'Welcome!' },
+      {
+        tag: 'ul',
+        props: { class: 'welcome-list', style: 'font-size:1.18em;line-height:1.5;margin-bottom:1.2em;' },
+        children: [
+          { tag: 'li', children: "👋 Welcome to the demo of a modern, modular frontend framework!" },
+          { tag: 'li', children: "🧩 Use the sidebar to explore real-world widgets, switch themes, test SPA routing, and see live state updates." },
+          { tag: 'li', children: "⚡ Try adding tasks, chatting, switching themes, or checking the weather — all data is saved automatically." },
+          { tag: 'li', children: "🏠 Use the navigation buttons above or the menu on the left to discover all features." }
+        ]
       },
-      children: 'Add notification and navigate'
-    }
-  ]
-}));
+      // {
+      //   tag: 'button',
+      //   events: {
+      //     click: () => {
+      //       const msgs = getState('notifications') || [];
+      //       setState('notifications', [...msgs, '🎉 You pressed the button! This is a test notification.']);
+      //     }
+      //   },
+      //   children: 'Add a fun notification!'
+      // },
+      // lastNotification ? {
+      //   tag: 'div',
+      //   props: { style: 'margin-top:1em;font-size:1.05em;color:#555;' },
+      //   children: [ "🔔 Last notification: ", { tag: 'b', children: lastNotification } ]
+      // } : null
+    ]
+  };
+});
 
 // Register named components
 defineComponent('TimeTracker', TimeTracker);
@@ -320,7 +337,12 @@ registerRoute('/weather', () => {
   }
   // Create container for weather widget
   app.innerHTML = '<div id="weather-widget"></div>';
-  initWeatherWidget();
+  const weatherWidgetContainer = document.getElementById('weather-widget');
+  lazyMount(
+    weatherWidgetContainer,
+    initWeatherWidget,
+    Config.dom.lazyRenderOptions
+  ); // Lazy rendering demo
 });
 
 // Personal Dashboard route
@@ -347,6 +369,7 @@ registerRoute('/dashboard', () => {
         <li>📝 <b>Logger:</b> Errors and important actions are logged for debugging.</li>
         <li>⚙️ <b>Config:</b> Centralized configuration for API endpoints and app settings.</li>
         <li>🛠️ <b>Utils:</b> Advanced HTTP requests, caching, and helpers in widgets.</li>
+        <li>💤 <b>Lazy Rendering:</b> Some widgets (Icon demo, Weather, Chat) are mounted only when visible for better performance.</li>
       </ul>
     </section>
     <h1 class="dashboard-title">🏋️‍♂️ Fitness/Wellness Dashboard</h1>
@@ -376,13 +399,24 @@ registerRoute('/dashboard', () => {
   // Weather
   const weatherPanel = document.getElementById('weather-panel');
   weatherPanel.innerHTML = '<div id="weather-widget"></div>';
-  initWeatherWidget();
+  const weatherWidgetContainer = document.getElementById('weather-widget');
+  lazyMount(
+    weatherWidgetContainer,
+    initWeatherWidget,
+    Config.dom.lazyRenderOptions
+  ); // Lazy rendering demo
   // Tasks
   const tasksPanel = document.getElementById('tasks-panel');
   bindComponentToStateWithDeps('TaskManager', {}, tasksPanel);
   // Chat
   const chatPanel = document.getElementById('chat-panel');
-  bindComponentToStateWithDeps('Chat', {}, chatPanel);
+  chatPanel.innerHTML = '<div id="chat-widget"></div>';
+  const chatWidgetContainer = document.getElementById('chat-widget');
+  lazyMount(
+    chatWidgetContainer,
+    () => bindComponentToStateWithDeps('Chat', {}, chatWidgetContainer),
+    Config.dom.lazyRenderOptions
+  ); // Lazy rendering demo
   // Time Tracker
   const timePanel = document.getElementById('timetracker-panel');
   bindComponentToStateWithDeps('TimeTracker', {}, timePanel);

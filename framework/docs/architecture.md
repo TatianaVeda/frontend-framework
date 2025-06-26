@@ -12,6 +12,7 @@
 - router.js — SPA router
 - state.js — Global state
 - utils/request.js — HTTP requests and helpers
+- utils/lazyMount.js — Lazy rendering utilities
 
 ## Example Project Structure
 
@@ -40,6 +41,7 @@ graph TD
     Logger
     Config
     Router
+    LazyMount
     %% 
     Events --- API
     Logger --- Config
@@ -65,6 +67,7 @@ graph TD
   Router --> Pages
   Router --> State
   Router -.-> API
+  LazyMount --> Pages
 ```
 
 ## Module Responsibilities
@@ -79,6 +82,7 @@ graph TD
 - **CSSVars:** CSS variables for theming, updated from state.
 - **Styles:** Global and page-specific styles.
 - **Pages:** All app pages (Dashboard, Chat, Weather, etc.), each can use widgets and framework modules.
+- **LazyMount:** Handles lazy rendering of components and images using IntersectionObserver (see `framework/utils/lazyMount.js`). Used on Dashboard for Weather and Chat widgets.
 
 ## How App Uses Framework Modules
 - **Pages** and their widgets use State, Events, API, Logger, Config, and Router for all business logic and UI updates.
@@ -130,5 +134,8 @@ sequenceDiagram
 - `example/components/extra/Chat.js` — input handling, event dispatch, state subscription, rendering.
 - `framework/state.js`, `framework/persistentState.js` — state storage and autosave.
 - `framework/events.js` — EventBus and custom events.
+
+## Lazy Rendering
+Lazy rendering is used for heavy or rarely visited pages (e.g., `/performance`, `/icons`), and is also demonstrated on the main Dashboard for the Weather and Chat widgets. Ready for any future heavy widgets or long lists.
 
  

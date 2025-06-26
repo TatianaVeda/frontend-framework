@@ -76,18 +76,20 @@ subscribe('apiData', () => {
 ```
 
 ### 6. Use Lazy Rendering for Large DOM Structures
-Enable lazy rendering for heavy lists or components that do not need to be in the DOM immediately. This improves performance for large or scrollable content.
+Enable lazy rendering for heavy lists or components that do not need to be in the DOM immediately. This improves performance for large or scrollable content (rarely visible components ).
+
+**How to do it:**
+Use the `lazyMount.js` utility module, which leverages IntersectionObserver to mount components only when they become visible. This pattern is used on the main Dashboard for Weather and Chat widgets. 
 
 **Example:**
-```javascript
-// See lazyRenderOptions in framework/config.js
-dom: {
-  lazyRenderOptions: {
-    rootMargin: '0px',
-    threshold: 0.1
-  }
-}
+```js
+import { lazyMount } from 'framework/utils/lazyMount.js';
+import { Config } from 'framework/config.js';
+
+const container = document.getElementById('weather-widget');
+lazyMount(container, initWeatherWidget, Config.dom.lazyRenderOptions);
 ```
+
 
 ### 7. Prevent Default Behavior and Event Bubbling When Needed
 Use `event.preventDefault()` and `event.stopPropagation()` in your handlers to control browser behavior and event flow.

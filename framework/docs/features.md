@@ -237,6 +237,32 @@ EventBus.on('globalEvent', (data) => {
 // Trigger a global event via the EventBus
 EventBus.emit('globalEvent', 'Event from EventBus!');
 ```
+
+### Lazy Rendering
+
+The `lazyMount.js` module provides a utility for lazy rendering (mounting) of components and images using the IntersectionObserver API.
+
+**Key features:**
+- Delays mounting of a component until its container enters the viewport.
+- Can be used for images (lazy loading) and any heavy or rarely visible widgets.
+- Helps reduce initial load time and memory usage.
+
+**Where used:**
+- On the main Dashboard for Weather and Chat widgets.
+- For heavy or rarely visited pages (e.g., `/performance`, `/icons`).
+
+**Example: Lazy-mounting a component (from example/main.js, Dashboard route)**
+```js
+// example/main.js, lines ~370-380
+const weatherPanel = document.getElementById('weather-panel');
+weatherPanel.innerHTML = '<div id="weather-widget"></div>';
+const weatherWidgetContainer = document.getElementById('weather-widget');
+lazyMount(
+  weatherWidgetContainer,
+  initWeatherWidget,
+  Config.dom.lazyRenderOptions
+); // Lazy rendering demo
+```
 ---
 
 ## Example Project Features

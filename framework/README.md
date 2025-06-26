@@ -79,8 +79,47 @@ For a detailed graphical architecture, see [docs/architecture.md](docs/architect
 - Persistent state is enabled by default (see `framework/persistentState.js`)
 - Theming, routing, and state management are integrated and ready to use
 
+## ✨ Extra Features & Performance Highlights
+
+This project goes beyond the standard requirements and implements several advanced features and performance optimizations:
+
+### 1. Performance-Driven Design & Lazy Rendering
+- **What:**  
+  - The framework includes a dedicated module for lazy rendering (`framework/utils/lazyMount.js`), using IntersectionObserver to mount components only when they enter the viewport.
+  - State and event systems are optimized for minimal re-renders and efficient subscriptions.
+  - Caching is used for API responses (e.g., weather data) to reduce network load and speed up repeated queries.
+- **Where:**  
+  - Lazy rendering is used for heavy or rarely visited pages (e.g., `/performance`, `/icons`), and is also demonstrated on the main `/dashboard` for the Weather and Chat widgets. Ready for any future heavy widgets or long lists.
+- **Why it matters:**  
+  - Reduces initial load time and memory usage.
+  - Improves performance, especially for dashboards or pages with many widgets.
+  - Keeps the UI responsive even as the app grows.
+  - The app remains fast and responsive even with multiple widgets and real-time features enabled.
+
+### 2. WebSocket Integration (Real-Time Chat)
+- **What:** The project features a real-time chat widget using WebSockets.
+- **Where:** See the "WebSocket Chat" in the sidebar and the `/chat` route.
+- **How:**  
+  - The chat component connects to a WebSocket server, enabling instant message delivery between users.
+  - Demonstrates real-time data flow and event-driven UI updates.
+- **Why it matters:**  
+  - Enables collaborative and interactive features.
+  - Shows the framework's ability to handle real-time communication, not just static or HTTP-based data.
+
+### 3. HTTP Requests & Data Sharing
+- **What:** The framework provides a unified API module (`framework/api.js`) for making HTTP requests and sharing data across the application.
+- **Where:**  
+  - The Weather Widget fetches live weather data from an external API (`wttr.in`).
+  - All API requests are handled with error logging and optional caching.
+- **Why it matters:**  
+  - Demonstrates integration with real-world external services.
+  - Shows how to manage asynchronous data and state updates in a modular way.
+
 ---
-For more details, see the documentation in `framework/docs/` and the code comments in each module.
+
+**Why is this project special?**  
+- It combines modern SPA architecture, real-time communication, and performance best practices in a single, extensible codebase.
+- All extra features are implemented in a way that does not interfere with the default user experience, but provide clear benefits for scalability and maintainability.
 
 ## Manual testing:  
 
