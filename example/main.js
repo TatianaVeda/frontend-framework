@@ -451,6 +451,7 @@ window.navigateTo = function(path, event) {
   app.innerHTML = '';
   history.pushState({}, '', path);
   navigateTo(path);
+   window.scrollTo(0, 0);
 };
 
 // Theme modal logic
