@@ -125,12 +125,5 @@ sequenceDiagram
 - `framework/events.js` — EventBus and custom events.
 - `framework/utils/lazyMount.js` — lazy rendering utilities.
 
-## Data Flow Example
-1. **User input:** User interacts with a widget (e.g., submits a form).
-2. **Event:** Event is handled via Events or the component's event handler.
-3. **Processing:** Data is processed, possibly using API or updating State.
-4. **State update:** State is updated via setState.
-5. **UI update:** Pages/components subscribed to state changes re-render automatically.
-6. **Persistence:** If needed, PersistentState saves the new state.
- 
+
  
