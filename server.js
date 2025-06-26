@@ -99,8 +99,11 @@ app.get("/api/big-file", (req, res) => {
     // Return 404 if file is not found
     return res.status(404).json({ error: "File not found" });
   }
+  const stat = fs.statSync(filePath);
   // Set appropriate content type for JPEG image
   res.setHeader("Content-Type", "image/jpeg");
+  res.setHeader("Content-Length", stat.size);         
+  res.setHeader("Accept-Ranges", "bytes");
   // Stream the file to the client
   const readStream = fs.createReadStream(filePath);
   readStream.pipe(res);

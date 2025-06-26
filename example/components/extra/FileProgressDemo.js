@@ -20,11 +20,9 @@ export function FileProgressDemo() {
     const bar = document.querySelector('#downloadProgressBar .bar');
     const text = document.getElementById('downloadProgressText');
     if (bar) {
-      // Adjust the width of the progress bar
       bar.style.width = `${percent}%`;
     }
     if (text) {
-      // Update the displayed percentage text
       setTextContent(text, `Downloaded: ${percent}%`);
     }
   }
@@ -35,11 +33,9 @@ export function FileProgressDemo() {
     const bar = document.querySelector('#uploadProgressBar .bar');
     const text = document.getElementById('uploadProgressText');
     if (bar) {
-      // Adjust the width of the progress bar
       bar.style.width = `${percent}%`;
     }
     if (text) {
-      // Update the displayed percentage text
       setTextContent(text, `Uploaded: ${percent}%`);
     }
   }
@@ -51,14 +47,12 @@ export function FileProgressDemo() {
       { tag: 'h2', children: 'File upload with progress' },
 
       // Download section
-      // Download section
       {
         tag: 'div',
         props: { id: 'downloadSection', style: 'margin-top: 16px;' },
         children: [
-          // Button to start download
           { tag: 'button', props: { id: 'downloadBtn' }, children: 'Download Large File' },
-          // Progress bar container
+          { tag: 'button', props: { id: 'resetDownloadBtn', style: 'margin-left:8px;' }, children: 'Reset progress' },
           {
             tag: 'div',
             props: {
@@ -66,7 +60,6 @@ export function FileProgressDemo() {
               style: 'width:100%; height:20px; background:#eee; margin-top:8px; position:relative;'
             },
             children: [
-              // Inner bar indicating progress
               {
                 tag: 'div',
                 props: {
@@ -76,7 +69,6 @@ export function FileProgressDemo() {
               }
             ]
           },
-          // Text showing downloaded percentage
           { tag: 'div', props: { id: 'downloadProgressText', style: 'margin-top:4px;' }, children: 'Downloaded: 0%' }
         ]
       },
@@ -86,7 +78,6 @@ export function FileProgressDemo() {
         tag: 'div',
         props: { id: 'uploadSection', style: 'margin-top: 24px;' },
         children: [
-          // Custom file-label wrapping our button and filename span
           {
             tag: 'label',
             props: {
@@ -94,13 +85,11 @@ export function FileProgressDemo() {
               style: 'display:flex; align-items:center; gap:8px; cursor:pointer;'
             },
             children: [
-              // Our custom button to trigger file dialog
               { tag: 'button', props: { type: 'button', class: 'choose-btn' }, children: 'Choose File' },
-              // Span to show chosen filename
+              { tag: 'button', props: { id: 'resetUploadBtn', style: 'margin-left:8px;' }, children: 'Reset progress' },
               { tag: 'span', props: { class: 'filename' }, children: 'No file chosen' }
             ]
           },
-          // Hidden native file input (off-screen)
           {
             tag: 'input',
             props: {
@@ -109,7 +98,6 @@ export function FileProgressDemo() {
               style: 'position:absolute; left:-9999px;'
             }
           },
-          // Progress bar container
           {
             tag: 'div',
             props: {
@@ -126,7 +114,6 @@ export function FileProgressDemo() {
               }
             ]
           },
-          // Text showing uploaded percentage
           { tag: 'div', props: { id: 'uploadProgressText', style: 'margin-top:4px;' }, children: 'Uploaded: 0%' }
         ]
       }
@@ -135,13 +122,10 @@ export function FileProgressDemo() {
       mount: (node) => {
         console.info('FileProgressDemo mounted', node);
 
-        // ------------------------
         // 1) DOWNLOAD BUTTON LOGIC
-        // ------------------------
         const downloadBtn = node.querySelector('#downloadBtn');
         if (downloadBtn) {
           downloadBtn.addEventListener('click', () => {
-            // Reset progress and start download with progress callback
             setState('downloadProgress', 0);
             getData('/api/big-file', {
               responseType: 'blob',
@@ -150,79 +134,87 @@ export function FileProgressDemo() {
                 setState('downloadProgress', percent);
               }
             })
-              .then((blob) => {
-                // Trigger file download once complete
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'big-image.jpg';
-                link.click();
-              })
-              .catch((err) => {
-                console.error('Download error:', err);
-              });
+            .then((blob) => {
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = 'big-image.jpg';
+              link.click();
+            })
+            .catch((err) => {
+              console.error('Download error:', err);
+            });
           });
         }
 
-        // ---------------------------------
-        // 2) CUSTOM FILE-INPUT BUTTON LOGIC
-        // ---------------------------------
+        // 2) RESET DOWNLOAD PROGRESS BUTTON LOGIC
+        const resetDownloadBtn = node.querySelector('#resetDownloadBtn');
+        if (resetDownloadBtn) {
+          resetDownloadBtn.addEventListener('click', () => {
+            setState('downloadProgress', 0);
+          });
+        }
+
+        // 3) CUSTOM FILE-INPUT BUTTON LOGIC
         const chooseBtn = node.querySelector('.choose-btn');
         const fileInput = node.querySelector('#uploadInput');
         const nameSpan  = node.querySelector('.filename');
 
         if (chooseBtn && fileInput && nameSpan) {
-          // When user clicks our button, open the native file dialog
           chooseBtn.addEventListener('click', () => {
             fileInput.click();
           });
 
-          // When a file is selected, update the filename text and start upload
           fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            // Update span: either chosen filename or fallback text
             nameSpan.textContent = file ? file.name : 'No file chosen';
 
             if (!file) return;
 
-            // Reset upload progress state
             setState('uploadProgress', 0);
 
-            // Start POST upload with progress callback
             postData('/api/upload', file, {
-              transformData: (data) => data, // send as Blob
+              transformData: (data) => data,
               uploadProgressCb: (loaded, total) => {
                 const percent = total ? Math.round((loaded / total) * 100) : 0;
                 setState('uploadProgress', percent);
               }
             })
-              .then((res) => {
-                console.info('Upload success:', res);
-              })
-              .catch((err) => {
-                console.error('Upload error:', err);
-              });
+            .then((res) => {
+              console.info('Upload success:', res);
+            })
+            .catch((err) => {
+              console.error('Upload error:', err);
+            });
           });
         }
 
-        // --------------------------------
-        // 3) PROGRESS STATE SUBSCRIPTIONS
-        // --------------------------------
+        // 4) RESET UPLOAD PROGRESS BUTTON LOGIC
+        const resetUploadBtn = node.querySelector('#resetUploadBtn');
+        if (resetUploadBtn) {
+          resetUploadBtn.addEventListener('click', () => {
+            setState('uploadProgress', 0);
+            if (fileInput) fileInput.value = '';
+            const uploadText = node.querySelector('#uploadProgressText');
+            if (uploadText) uploadText.textContent = 'Uploaded: 0%';
+            if (nameSpan)    nameSpan.textContent    = 'No file chosen';
+          });
+        }
+
+        // 5) PROGRESS STATE SUBSCRIPTIONS
         subscribe('downloadProgress', updateDownloadBar);
         subscribe('uploadProgress',   updateUploadBar);
 
-        // Perform initial UI update
         updateDownloadBar();
         updateUploadBar();
       },
 
       update: (node) => {
-        // Progress bars are updated via subscribe
+        // Progress bars are updated via subscriptions
       },
 
       unmount: (node) => {
         console.info('FileProgressDemo unmounted', node);
-        // Clean up subscriptions
         unsubscribe('downloadProgress', updateDownloadBar);
         unsubscribe('uploadProgress',   updateUploadBar);
       }
