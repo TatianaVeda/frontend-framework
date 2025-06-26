@@ -1,18 +1,20 @@
 # Architecture
 
-## Framework Directory Structure
+## Framework Modules and Responsibilities
 
-- api.js — API helpers
-- components.js — Component system
-- config.js — Centralized configuration
-- dom.js — DOM utilities
-- events.js — Event system
-- logger.js — Logging utilities
-- persistentState.js — Persistent state
-- router.js — SPA router
-- state.js — Global state
-- utils/request.js — HTTP requests and helpers
-- utils/lazyMount.js — Lazy rendering utilities
+| File/Module                | Module Name         | Responsibility/Description                                      |
+|----------------------------|--------------------|-----------------------------------------------------------------|
+| `api.js`                   | API                | Helpers for HTTP requests and external APIs                     |
+| `components.js`            | Components         | Component system, `defineComponent`, rendering                  |
+| `config.js`                | Config             | Centralized configuration (themes, endpoints, options)          |
+| `dom.js`                   | DOM                | DOM utilities, manipulation                                     |
+| `events.js`                | Events             | Event system for delegation and global communication            |
+| `logger.js`                | Logger             | Unified logging for debugging and error reporting               |
+| `persistentState.js`       | PersistentState    | Saves and restores global state between sessions (localStorage) |
+| `router.js`                | Router             | SPA routing, navigation, and dynamic page rendering             |
+| `state.js`                 | State              | Centralized, reactive global state for all app data             |
+| `utils/request.js`         | Utils/Request      | HTTP requests and helpers                                       |
+| `utils/lazyMount.js`       | LazyMount / LazyImageLoader | Handles lazy rendering of components and images using IntersectionObserver (see `framework/utils/lazyMount.js`). Used on Icon Demo and Performance pages, on Dashboard for Weather and Chat widgets. Also prepares SPA for any future heavy widgets or long lists. |
 
 ## Example Project Structure
 
@@ -28,8 +30,6 @@
 - Simplicity: Minimal, clear API and structure.
 
 ## Architecture Diagram
-
-> **Note:** The App and Framework blocks are of equal height and placed side by side for clarity.
 
 ```mermaid
 graph TD
@@ -70,7 +70,7 @@ graph TD
   LazyMount --> Pages
 ```
 
-## Module Responsibilities
+## How App Uses Framework Modules
 - **PersistentState:** Saves and restores global state between sessions (localStorage).
 - **State:** Centralized, reactive global state for all app data.
 - **Events:** Event system for delegation and global communication.
@@ -82,21 +82,7 @@ graph TD
 - **CSSVars:** CSS variables for theming, updated from state.
 - **Styles:** Global and page-specific styles.
 - **Pages:** All app pages (Dashboard, Chat, Weather, etc.), each can use widgets and framework modules.
-- **LazyMount:** Handles lazy rendering of components and images using IntersectionObserver (see `framework/utils/lazyMount.js`). Used on Dashboard for Weather and Chat widgets.
-
-## How App Uses Framework Modules
-- **Pages** and their widgets use State, Events, API, Logger, Config, and Router for all business logic and UI updates.
-- **ThemeSwitcher** updates State, which updates CSSVars and thus the app's appearance.
-- **PersistentState** ensures important state is saved/restored automatically.
-- **Styles** and **CSSVars** provide both global and per-page theming.
-
-## Data Flow Example
-1. **User input:** User interacts with a widget (e.g., submits a form).
-2. **Event:** Event is handled via Events or the component's event handler.
-3. **Processing:** Data is processed, possibly using API or updating State.
-4. **State update:** State is updated via setState.
-5. **UI update:** Pages/components subscribed to state changes re-render automatically.
-6. **Persistence:** If needed, PersistentState saves the new state.
+- **LazyMount:** and **LazyImageLoader:** Handles lazy rendering of components. 
 
 ## Data Flow Example: Chat Widget
 
@@ -111,10 +97,12 @@ sequenceDiagram
   participant ChatWidget as "Chat Widget"
   participant DOM
   participant EventBus
+  participant LazyMount
 
   User->>ChatInput: Types message and presses Enter
   ChatInput->>EventBus: dispatchCustomEvent('sendMessage', {text})
   EventBus->>ChatWidget: Handles 'sendMessage' event
+  LazyMount->>ChatWidget: Mounts only when visible
   ChatWidget->>State: setState('chatMessages', [...])
   State->>PersistentState: (auto) saves chatMessages
   State->>ChatWidget: Triggers subscription on chatMessages
@@ -123,6 +111,7 @@ sequenceDiagram
 ```
 
 **Step-by-step:**
+0. Chat widget is mounted via `lazyMount` only when it enters the viewport (if using `/dashboard` route).
 1. **User** types a message and presses Enter in the chat input.
 2. **Chat Input** dispatches a custom event (`sendMessage`) via the EventBus.
 3. **Chat Widget** listens for this event, adds the message to global state (`setState('chatMessages', ...)`).
@@ -134,8 +123,14 @@ sequenceDiagram
 - `example/components/extra/Chat.js` — input handling, event dispatch, state subscription, rendering.
 - `framework/state.js`, `framework/persistentState.js` — state storage and autosave.
 - `framework/events.js` — EventBus and custom events.
+- `framework/utils/lazyMount.js` — lazy rendering utilities.
 
-## Lazy Rendering
-Lazy rendering is used for heavy or rarely visited pages (e.g., `/performance`, `/icons`), and is also demonstrated on the main Dashboard for the Weather and Chat widgets. Ready for any future heavy widgets or long lists.
-
+## Data Flow Example
+1. **User input:** User interacts with a widget (e.g., submits a form).
+2. **Event:** Event is handled via Events or the component's event handler.
+3. **Processing:** Data is processed, possibly using API or updating State.
+4. **State update:** State is updated via setState.
+5. **UI update:** Pages/components subscribed to state changes re-render automatically.
+6. **Persistence:** If needed, PersistentState saves the new state.
+ 
  
