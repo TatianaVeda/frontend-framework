@@ -14,18 +14,8 @@ You can use them in any context, and connect them to state, router, or theme as 
 - Lifecycle hooks (mount, update, unmount)
 - Dependency tracking for reactivity
 
-**Example: Defining a component (from the core code)**
-```js
-// Register a component
-defineComponent('MyComponent', (props) => ({
-  tag: 'div',
-  children: [
-    { tag: 'h2', children: `Hello, ${props.name || 'World'}!` }
-  ]
-}));
-```
-
-**Example: Core registration logic**
+**Example: Core registration logic**  
+Source: [components.js:348](../components.js#L348)
 ```js
 export function defineComponent(name, renderFunction) {
   components.set(name, props => {
@@ -51,18 +41,23 @@ It allows you to register routes, handle navigation, and render components based
 - SPA navigation without page reloads
 - Programmatic navigation with `navigateTo`
 
-**Example: Registering a route**
+**Example: Registering a route**  
+Source: [main.js:192](../../example/main.js#L74)
 ```js
-registerRoute('/about', () => {
-  renderComponent('AboutPage', {}, document.getElementById('app'));
+registerRoute('/time-tracker', () => {
+  const app = document.getElementById('app');
+  if (currentComponent?.unmount) currentComponent.unmount();
+  renderComponent('TimeTracker', {}, app);
 });
 ```
-**Example: Navigating programmatically**
+**Example: Navigating programmatically**  
+Source: [router.js:87](../router.js#L87)
 ```js
-// Go to the Task Manager page after a button click
-button.addEventListener('click', () => {
-  navigateTo('/task-manager');
-});
+export async function navigateTo(path, replace = false) {
+  const fullPath = Config.router.basePath + path;
+  Logger.debug(`Navigating to route: ${fullPath}`);
+  // ...
+}
 ```
 
 See also: [Components](#components), [State Management](#state-management)
@@ -78,15 +73,15 @@ It allows you to store, update, and subscribe to state changes anywhere in your 
 - Simple API: `getState`, `setState`
 - Dependency tracking for efficient updates
 
-**Example: Changing and reacting to theme mode**
+**Example: Managing tasks state in a component**  
+Source: [queueManager.js:12](../../example/components/queueManager.js#L12), [queueManager.js:16](../../example/components/queueManager.js#L16), [queueManager.js:21](../../example/components/queueManager.js#L21), [queueManager.js:23](../../example/components/queueManager.js#L23), [queueManager.js:155](../../example/components/queueManager.js#L155)
 ```js
-// Change theme mode
-env.setState('themeMode', 'dark');
-
-// Subscribe to theme changes
-env.subscribe('themeMode', (mode) => {
-  console.log('Theme changed to:', mode);
-});
+if (!getState('tasks')) setState('tasks', []);
+...
+const tasks = getState('tasks') || [];
+setState('tasks', [...tasks, newTask]);
+...
+subscribe('tasks', tasksSubscription);
 ```
 
 See also: [Components](#components), [Persistent State](#persistent-state)
@@ -101,21 +96,29 @@ It ensures that user data (such as theme, tasks, or chat) is preserved even afte
 - Works with any state key (theme, tasks, etc.)
 - Simple API: `initPersistentState()`
 
-**Example: Saving and restoring tasks**
+**Example: Persistent state initialization logic**  
+Source: [persistentState.js:42](../persistentState.js#L42)
 ```js
-import { initPersistentState } from 'framework/persistentState.js';
-import { getState, setState } from 'framework/state.js';
+export function initPersistentState() {
+  loadState();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    currentState = raw ? JSON.parse(raw) : {};
+  } catch (err) {
+    console.error('PersistentState: Error reading state from localStorage:', err);
+    currentState = {};
+  }
 
-// Initialize persistent state on app startup
-initPersistentState();
+  // Subscribe to all state changes
+  subscribe('*', (change) => {
+    // Do not save socket objects in persistent state
+    if (change.key === 'chatSocket') return;
 
-// Add a new task
-setState('tasks', [...getState('tasks') || [], newTask]);
-
-// On page load or component mount
-const tasks = getState('tasks') || [];
+    currentState[change.key] = change.value;
+    saveStateDebounced(currentState); // Save the updated state
+  });
+}
 ```
-Thanks to persistent state, the task list is automatically saved and restored between sessions.
 
 See also: [State Management](#state-management)
 
@@ -128,14 +131,32 @@ The `api.js` module provides helpers for making HTTP requests and working with e
 - Error handling and logging
 - Can be extended for custom endpoints
 
-**Example: Fetching weather data in the Weather Widget**
-```js
-// example/components/WeatherWidget.js, lines 45-55
-import { getData } from 'framework/api.js';
+**Example: Fetching weather data in the Weather Widget**  
+[View code (WeatherWidget.js, line 38)](../../example/components/WeatherWidget.js#L38)  
 
-async function fetchWeather(city) {
-  const data = await getData(`https://wttr.in/${encodeURIComponent(city)}?format=j1`);
-  // ...use data for widget
+```js
+// example/components/WeatherWidget.js, lines 38-55
+async function fetchWeatherData(city) {
+  const cacheKey = `weather_${city.toLowerCase()}`;
+  try {
+    // Use the framework API with built-in caching
+    const response = await getData(`https://wttr.in/${encodeURIComponent(city)}?format=j1`, {
+      timeout: REQUEST_TIMEOUT,
+      cacheKey,
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'curl/7.64.1'
+      },
+      metricsLabel: `weather-${city}`,
+      onError: (error) => {
+        Logger.error(`Error getting weather for ${city}:`, error);
+      }
+    });
+    // ...
+  } catch (error) {
+    Logger.error(`Error getting weather for ${city}:`, error);
+    throw error;
+  }
 }
 ```
 
@@ -148,9 +169,10 @@ The `logger.js` module provides a simple logging utility for debugging and error
 - Unified logging interface
 
 **Example: Logging an error during component mount**
+[View code (components.js, line 137)](../components.js#L137)
 ```js
 // framework/components.js, line 120
-Logger.error('Error in component mount method:', err);
+Logger.error('Error in unmount component method:', err);
 ```
 
 ### Config
@@ -162,7 +184,9 @@ The `config.js` module centralizes all configuration for the framework and examp
 - API endpoints
 - Component and DOM settings
 
-**Example: Using lazyRenderOptions for DOM rendering**
+**Example: Using lazyRenderOptions for DOM rendering**  
+[View code (config.js, line 32)](../config.js#L32)  
+
 ```js
 // framework/config.js, lines 32-37
 const Config = {
@@ -183,6 +207,7 @@ The `dom.js` module contains helper functions for DOM manipulation and UI update
 - Helpers for scrolling, focus, and more
 
 **Example: Auto-scroll chat to the latest message**
+[View code (extra/Chat.js, line 21)](../../example/components/extra/Chat.js#L21)
 ```js
 // example/components/extra/Chat.js, lines 34–49
 function renderMessages() {
@@ -208,6 +233,7 @@ The `events.js` module provides a simple event system for custom event handling 
 - Event delegation for components
 
 **Example 1: Event delegation in Task Manager**
+[View code (queueManager.js, lines 158)](../../example/components/queueManager.js#L158)
 ```js
 // example/components/queueManager.js, lines 120–180
 import { delegateEvent } from 'framework/events.js';
@@ -252,6 +278,7 @@ The `lazyMount.js` module provides a utility for lazy rendering (mounting) of co
 - For heavy or rarely visited pages (e.g., `/performance`, `/icons`).
 
 **Example: Lazy-mounting a component (from example/main.js, Dashboard route)**
+[View code (main.js, line 402)](../../example/main.js#L402)
 ```js
 // example/main.js, lines ~370-380
 const weatherPanel = document.getElementById('weather-panel');
