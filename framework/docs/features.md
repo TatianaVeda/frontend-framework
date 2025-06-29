@@ -342,11 +342,11 @@ The Dashboard is a showcase of all framework features: widgets, routing, themes,
 ### Example Pages and Routes
 
 The project implements demo pages for different widgets and features:
-- Time Tracker, Weather, Task Manager, Chat ( File Progress, Form Demo, File Progress, DOM Utils, Events, API, Performance Dashboard)
+- Time Tracker, Weather, Task Manager, Chat, Notifications,File Progress, Form Demo, File Progress, DOM Utils, Events, API, Performance Dashboard.
 
 | Route                 | Description             | Component Path                                 |
 |-----------------------|------------------------|------------------------------------------------|
-| `/dashboard`          | All widgets            | (composed from all below)                      |
+| `/dashboard`          | Welness dashboard in 4 widgets: Weather, Time Tracker, Chat, Task Manager     |
 | `/theme-switcher`     | Theme Switcher         | example/components/ThemeSwitcher.js            |
 | `/weather`            | Weather Widget         | example/components/WeatherWidget.js            |
 | `/time-tracker`       | Time Tracker           | example/components/timeTracker.js              |
