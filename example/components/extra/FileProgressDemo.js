@@ -48,9 +48,9 @@ export function FileProgressDemo() {
     tag: 'div',
     props: { class: 'file-progress page' },
     children: [
-      // Section header
-      { tag: 'h2', children: 'File Transfers with Progress' },
+      { tag: 'h2', children: 'File upload with progress' },
 
+      // Download section
       // Download section
       {
         tag: 'div',
@@ -190,7 +190,7 @@ export function FileProgressDemo() {
 
             // Start POST upload with progress callback
             postData('/api/upload', file, {
-              transformData: d => d,
+              transformData: (data) => data, // send as Blob
               uploadProgressCb: (loaded, total) => {
                 const percent = total ? Math.round((loaded / total) * 100) : 0;
                 setState('uploadProgress', percent);
@@ -217,7 +217,7 @@ export function FileProgressDemo() {
       },
 
       update: (node) => {
-        // No additional updates needed here
+        // Progress bars are updated via subscribe
       },
 
       unmount: (node) => {
@@ -230,4 +230,5 @@ export function FileProgressDemo() {
   };
 }
 
+// Register component
 defineComponent('FileProgressDemo', FileProgressDemo);

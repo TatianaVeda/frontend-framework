@@ -1,8 +1,12 @@
+
+// /frontend-framework/example/components/extra/Chat.js
+
 import { getState, setState, subscribe, unsubscribe } from 'framework/state.js';
 import { defineComponent } from 'framework/components.js';
 import { createElement, appendChild, setTextContent, clearChildren } from 'framework/dom.js';
 import { Config } from 'framework/config.js';
 
+// Chat component factory
 export function Chat() {
   // Initialize chatMessages state if not already defined
   if (getState('chatMessages') === undefined) {
@@ -25,10 +29,12 @@ export function Chat() {
       const p = createElement('p');
       // Store the user ID in a data attribute
       p.dataset.userId = msg.id;
-      // Set text content: [HH:MM:SS] User: message text
+      const date = new Date(msg.timestamp);
+      const dateStr = date.toLocaleDateString('en-GB');
+      const timeStr = date.toLocaleTimeString();
       setTextContent(
         p,
-        `[${new Date(msg.timestamp).toLocaleTimeString()}] User: ${msg.text}`
+        `[${dateStr} ${timeStr}] User notes: ${msg.text}`
       );
       // Append the paragraph to the messages container
       appendChild(container, p);
@@ -57,11 +63,8 @@ export function Chat() {
     tag: 'div',
     props: { class: 'chat-page page' },
     children: [
-      // Header for the chat page
-      { tag: 'h2', children: 'WebSocket Chat' },
-      // Status display element
+      { tag: 'h2', children: 'Mood & Milestone Tracker' },
       { tag: 'span', props: { id: 'chatStatus' }, children: `Status: ${getState('chatStatus')}` },
-      // Container for chat messages, with scrollable area
       {
         tag: 'div',
         props: {
@@ -91,7 +94,7 @@ export function Chat() {
           socket = io(Config.websocket.apiUrl);
           setState('chatSocket', socket);
 
-          // Update state when connection is established
+          // 2. Set handlers once on first connection
           socket.on('connect', () => setState('chatStatus', 'connected'));
           // Update state when disconnected
           socket.on('disconnect', () => setState('chatStatus', 'disconnected'));
@@ -132,13 +135,14 @@ export function Chat() {
           clearBtn._onClear = clearChat;
         }
 
-        // Initial rendering on mount
+        // 5. Render immediately current data
         renderMessages();
         updateStatusUI();
       },
 
       // Called when component updates; no specific behavior needed here
       update: (node) => {
+        // do nothing, because everything is rendered on subscribe
       },
 
       // Called when the component is unmounted from the DOM
@@ -161,6 +165,8 @@ export function Chat() {
           clearBtn.removeEventListener('click', clearBtn._onClear);
           delete clearBtn._onClear;
         }
+
+        // Do not close socket.disconnect() — let it remain connected
       }
     }
   };

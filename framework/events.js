@@ -82,6 +82,7 @@ export function delegateEvent(parent, eventType, selector, handler, options = {}
       }
     } catch (err) {
       console.error(`Error in event handler ${eventType}:`, err);
+      console.error(`Error in event handler ${eventType}:`, err);
     }
   }
 
@@ -262,6 +263,7 @@ export const EventBus = {
         handler(data);
       } catch (err) {
         console.error(`Error in event handler ${eventName}:`, err);
+        console.error(`Error in event handler ${eventName}:`, err);
       }
     });
   }
@@ -317,7 +319,7 @@ export function onEvent(eventType, selector, handler, options = {}) {
           try {
             handler(event);
           } catch (err) {
-            console.error(`Error in global handler ${eventType}:`, err);
+            console.error(`Error in global event handler ${eventType}:`, err);
           }
         }
       });
@@ -342,3 +344,10 @@ export function offEvent(eventType, selector) {
     );
   }
 }
+
+const MODE_LABELS = {
+  light:  '🌞 Light',
+  dark:   '🌙 Dark',
+  custom: '🎨 Custom',
+  auto:   '🌓 Auto'
+};

@@ -182,7 +182,7 @@ export function resolveRoute() {
     try {
       notFoundHandler();
     } catch (err) {
-      Logger.error(`Error in notFoundHandler for path "${path}":`, err);
+      Logger.error(`Error in notFoundHandler for route "${path}":`, err);
     }
   } else {
     Logger.error(`❌ Route not found: ${path}`);

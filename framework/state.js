@@ -8,8 +8,11 @@ const globalState = {
 if (globalState.iconClicks === undefined) {
   globalState.iconClicks = {};
 }
-
-// Map to track per-component state
+// Personal Dashboard global state initialization
+if (globalState.tasks === undefined) globalState.tasks = [];
+if (globalState.weather === undefined) globalState.weather = { city: 'Moscow', data: null };
+if (globalState.chatMessages === undefined) globalState.chatMessages = [];
+if (globalState.currentTaskId === undefined) globalState.currentTaskId = null;
 const componentStates = new Map();
 
 // Map of subscribers: keys -> array of callback functions
@@ -143,7 +146,7 @@ export function subscribe(keys, callback) {
     }
   } else {
     throw new Error("Subscription key must be a string or an array of strings");
-  }
+    }
 }
 
 /**

@@ -71,6 +71,7 @@ export function IconDemo() {
       // Show the click count below the image
       const counter = createElement('div');
       counter.textContent = `Clicks: ${stateClicks[key] || 0}`;
+      counter.textContent = `Clicks: ${stateClicks[key] || 0}`;
 
       appendChild(wrapper, img);
       appendChild(wrapper, counter);
@@ -92,6 +93,7 @@ export function IconDemo() {
           cursor: 'pointer',
           fontSize: '12px'
         });
+        delBtn.textContent = 'Delete';
         delBtn.textContent = 'Delete';
         appendChild(wrapper, delBtn);
       }
@@ -165,6 +167,7 @@ export function IconDemo() {
     ],
     lifecycle: {
       mount: (node) => {
+        console.info('IconDemo mounted');
         console.info('IconDemo mounted');
         renderIcons();
 

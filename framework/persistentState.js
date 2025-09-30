@@ -5,22 +5,20 @@ const STORAGE_KEY = 'appState';
 // Loads state from localStorage, if available
 function loadState() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      console.info('PersistentState: no saved state — keeping defaults.');
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      console.info('PersistentState: Saved state not found');
       return;
     }
-
-    const parsed = JSON.parse(raw);
-    Object.entries(parsed).forEach(([key, value]) => {
-      setState(key, value); // Restore each saved state value
+    const parsedState = JSON.parse(stored);
+    Object.entries(parsedState).forEach(([key, value]) => {
+      setState(key, value);
     });
-    console.info('PersistentState: state loaded from localStorage.');
+    console.info('PersistentState: State loaded from localStorage.');
   } catch (err) {
-    console.error('PersistentState: failed to load state:', err);
+    console.error('PersistentState: Error loading state from localStorage:', err);
   }
 }
-
 // Utility function to debounce calls — delays execution
 function debounce(fn, delay) {
   let timeout = null;
@@ -32,34 +30,32 @@ function debounce(fn, delay) {
 
 let currentState = {};
 
-// Initializes the persistent state mechanism
-export function initPersistentState() {
-  loadState(); // Load state from storage on init
+// Debounced save function to prevent frequent writes
+const saveStateDebounced = debounce((stateObj) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stateObj));
+    console.info('PersistentState: State saved.');
+  } catch (err) {
+    console.error('PersistentState: Error saving state:', err);
+  }
+}, 300);
 
+export function initPersistentState() {
+  loadState();
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     currentState = raw ? JSON.parse(raw) : {};
   } catch (err) {
-    console.error('PersistentState: error reading currentState:', err);
+    console.error('PersistentState: Error reading state from localStorage:', err);
     currentState = {};
   }
 
-  // Debounced save function to prevent frequent writes
-  const saveDebounced = debounce((stateObj) => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(stateObj));
-      console.info('PersistentState: state saved.');
-    } catch (err) {
-      console.error('PersistentState: error saving state:', err);
-    }
-  }, 300);
-
   // Subscribe to all state changes
   subscribe('*', (change) => {
-    if (change.key === 'chatSocket') return; // Skip saving this key
+    // Do not save socket objects in persistent state
+    if (change.key === 'chatSocket') return;
 
     currentState[change.key] = change.value;
-
-    saveDebounced(currentState); // Save the updated state
+    saveStateDebounced(currentState); // Save the updated state
   });
 }

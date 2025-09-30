@@ -1,3 +1,5 @@
+// /frontend-framework/server.js
+
 import express from "express";
 import cors from "cors";
 import fs from "fs";
@@ -17,7 +19,7 @@ app.disable("x-powered-by");
 // Determine the port to listen on (default to 3000)
 const PORT = process.env.PORT || 3000;
 
-// Create an HTTP server to attach Socket.IO
+// Create HTTP server on top of Express
 const httpServer = createServer(app);
 
 // Initialize Socket.IO on the HTTP server with CORS settings
@@ -33,17 +35,15 @@ app.use((req, res, next) => {
   res.setHeader("Expires", "0");
   res.setHeader("Surrogate-Control", "no-store");
 
-  // Define a basic Content Security Policy
-
-res.setHeader(
-  "Content-Security-Policy",
-  [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' blob: data:",
-  ].join('; ')
-);
+  // CSP: allow self, inline-scripts, eval and inline-styles 
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " +
+    "style-src 'self' 'unsafe-inline';" +
+    "img-src 'self' data: https://picsum.photos https://fastly.picsum.photos https://via.placeholder.com https://jsonplaceholder.typicode.com;" +
+    "connect-src 'self' https://wttr.in https://picsum.photos https://jsonplaceholder.typicode.com;"
+  );
 
   next();
 });
@@ -92,7 +92,7 @@ app.post("/hello", (req, res) => {
   res.json({ greeting: `Hello, ${name.trim()}!` });
 });
 
-// Endpoint to stream a large image file from disk
+// --- API: serve large file for demonstration of download progress ---
 app.get("/api/big-file", (req, res) => {
   const filePath = path.join(__dirname, "example", "public", "big-image.jpg");
   if (!fs.existsSync(filePath)) {
@@ -111,13 +111,24 @@ app.post("/api/upload", (req, res) => {
   res.json({ success: true, message: "File received (emulation)" });
 });
 
-// Serve static assets from multiple directories
+// --- Middleware for correct MIME types of JavaScript files ---
+app.use((req, res, next) => {
+  if (req.path.endsWith('.js')) {
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  } else if (req.path.endsWith('.mjs')) {
+    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  }
+  next();
+});
+
+// --- Static: serve public, example, root ---
 app.use(express.static(path.join(__dirname, "example", "public")));
 app.use(express.static(path.join(__dirname, "example")));
 app.use(express.static("."));
 
-// Pass through Socket.IO client requests
+// --- Allow Socket.io routes (to bypass catch-all) ---
 app.get("/socket.io/*", (req, res, next) => {
+  // Do not serve index.html here, give Socket.io handlers to serve the request
   return next();
 });
 
@@ -146,7 +157,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start the server
+// --- Start HTTP server (with Socket.io) ---
 httpServer.listen(PORT, () => {
   console.log(`Server (with Socket.io) running at http://localhost:${PORT}`);
 });

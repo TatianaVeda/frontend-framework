@@ -17,7 +17,7 @@ import { Config } from 'framework/config.js';
 
 import { IconDemo } from './components/IconDemo.js';
 import { TimeTracker } from './components/timeTracker.js';
-import { QueueManager } from './components/queueManager.js';
+import { TaskManager } from './components/queueManager.js';
 import { PerformanceDashboard } from './components/performanceDashboard.js';
 import { APIDemo } from './components/APIDemo.js';
 import { EventsDemo } from './components/EventsDemo.js';
@@ -26,10 +26,16 @@ import { FormDemo } from './components/FormDemo.js';
 import { IconDetail } from './components/IconDetail.js';
 import { ThemeSwitcher } from './components/ThemeSwitcher.js';
 
+// Import new components (let them be, for example, in the example/components/extra/ folder)
 import { Chat } from './components/extra/Chat.js';
 import { FileProgressDemo } from './components/extra/FileProgressDemo.js';
 
-// Initialize state persistence (loads saved state, subscribes to changes)
+// New components
+import { initWeatherWidget } from './components/WeatherWidget.js';
+
+//WORK
+
+// Initialize persistent state for saving state between sessions
 initPersistentState();
 
 // Initialize themeMode and customTheme in state if not already set
@@ -109,13 +115,14 @@ registerHooks('/queue', {
     // If queue not initialized or empty, populate with defaults
     if (!Array.isArray(existing) || existing.length === 0) {
       setState('queue', [
-        { id: 1, text: 'Auto item 1', isEditing: false },
-        { id: 2, text: 'Auto item 2', isEditing: false }
+        { id: 1, text: 'Auto element 1', isEditing: false },
+        { id: 2, text: 'Auto element 2', isEditing: false }
       ]);
     }
     return true;
   },
   afterLeave: () => {
+    console.info('Leaving queue page');
     console.info('Leaving the queue page');
   }
 });
@@ -126,12 +133,13 @@ defineComponent('Home', () => ({
   props: { class: 'page' },
   children: [
     { tag: 'h2', children: 'Welcome!' },
-    {
+        {
       tag: 'button',
       events: {
         click: (event) => {
           const msgs = getState('notifications') || [];
           setState('notifications', [...msgs, 'New notification from Home']);
+        
           window.navigateTo('/events-demo', event);
         }
       },
@@ -142,7 +150,8 @@ defineComponent('Home', () => ({
 
 // Register named components
 defineComponent('TimeTracker', TimeTracker);
-defineComponent('QueueManager', QueueManager);
+defineComponent('QueueManager', TaskManager);
+defineComponent('TaskManager', TaskManager);
 defineComponent('PerformanceDashboard', PerformanceDashboard);
 defineComponent('APIDemo', APIDemo);
 defineComponent('EventsDemo', EventsDemo);
@@ -167,10 +176,24 @@ registerRoute('/time-tracker', () => {
   renderComponent('TimeTracker', {}, app);
 });
 
-registerRoute('/queue', () => {
+// Keep for backward compatibility, but render TaskManager
+/* registerRoute('/queue', () => {
   const app = document.getElementById('app');
-  if (currentComponent?.unmount) currentComponent.unmount();
-  currentComponent = bindComponentToStateWithDeps('QueueManager', {}, app);
+  if (currentComponent && typeof currentComponent.unmount === 'function') {
+    currentComponent.unmount();
+    currentComponent = null;
+  }
+  currentComponent = bindComponentToStateWithDeps('TaskManager', {}, app);
+}); */
+
+// New route for Task Manager
+registerRoute('/task-manager', () => {
+  const app = document.getElementById('app');
+  if (currentComponent && typeof currentComponent.unmount === 'function') {
+    currentComponent.unmount();
+    currentComponent = null;
+  }
+  currentComponent = bindComponentToStateWithDeps('TaskManager', {}, app);
 });
 
 registerRoute('/performance', () => {
@@ -226,7 +249,7 @@ registerRoute('/icons/:key', (route) => {
 
   if (!src) {
     app.innerHTML = '<h2>Icon not found</h2>';
-    return;
+       return;
   }
 
   const clicks = (getState('iconClicks') || {})[iconKey] || 0;
@@ -245,11 +268,118 @@ registerRoute('/file-progress', () => {
   currentComponent = bindComponentToStateWithDeps('FileProgressDemo', {}, app);
 });
 
+// New routes
+registerRoute('/weather', () => {
+  const app = document.getElementById('app');
+  if (currentComponent && currentComponent.unmount) {
+    currentComponent.unmount();
+    currentComponent = null;
+  }
+  // Create container for weather widget
+  app.innerHTML = '<div id="weather-widget"></div>';
+  initWeatherWidget();
+});
+
+// Personal Dashboard route
+registerRoute('/dashboard', () => {
+  const app = document.getElementById('app');
+  if (currentComponent && typeof currentComponent.unmount === 'function') {
+    currentComponent.unmount();
+    currentComponent = null;
+  }
+  // Grid layout for dashboard
+  app.innerHTML = `
+    
+    <section class="dashboard-checklist">
+      <h3>✅ Framework Modules in Action</h3>
+      <ul class="dashboard-modules-list">
+        <li><b>This dashboard is a showcase of the full potential of the framework. All core modules are used together in a real-world scenario.</b></li>
+        <li>🧩 <b>Components:</b> All widgets (Task Manager, Weather, Chat, Timer) are reusable components.</li>
+        <li>🗂️ <b>State:</b> All data (tasks, weather, chat, timer) is managed via global state.</li>
+        <li>💾 <b>PersistentState:</b> Your data is saved and restored automatically between sessions.</li>
+        <li>🧭 <b>Router:</b> Navigation between Dashboard, Task Manager, and other pages.</li>
+        <li>🌐 <b>API:</b> Weather widget fetches data from an external weather service.</li>
+        <li>🖼️ <b>DOM:</b> Dynamic creation and update of UI elements in all widgets.</li>
+        <li>⚡ <b>Events:</b> Event delegation for buttons and actions in Task Manager and Chat.</li>
+        <li>📝 <b>Logger:</b> Errors and important actions are logged for debugging.</li>
+        <li>⚙️ <b>Config:</b> Centralized configuration for API endpoints and app settings.</li>
+        <li>🛠️ <b>Utils:</b> Advanced HTTP requests, caching, and helpers in widgets.</li>
+      </ul>
+    </section>
+    <h1 class="dashboard-title">🏋️‍♂️ Fitness/Wellness Dashboard</h1>
+    <div id="dashboard-layout" class="dashboard-grid">
+      <section class="dashboard-zone dashboard-tasks">
+        <h2><span class="dashboard-icon">📋</span> Task Manager</h2>
+        <div class="dashboard-desc">Plan your daily or weekly exercises and track your fitness goals.</div>
+        <div id="tasks-panel"></div>
+      </section>
+      <section class="dashboard-zone dashboard-weather">
+        <h2><span class="dashboard-icon">☀️</span> Weather</h2>
+        <div class="dashboard-desc">Check the weather to plan your outdoor workouts.</div>
+        <div id="weather-panel"></div>
+      </section>
+      <section class="dashboard-zone dashboard-chat">
+        <h2><span class="dashboard-icon">💬</span> Notes & Progress</h2>
+        <div class="dashboard-desc"> Self-Check-In Chat or Daily Reflection Notes. Log your feelings, progress, motivation, and reminders.</div>
+        <div id="chat-panel"></div>
+      </section>
+      <section class="dashboard-zone dashboard-timer">
+        <h2><span class="dashboard-icon">⏱️</span> Time Tracker</h2>
+        <div class="dashboard-desc">Interval timer for workouts and tracking exercise sets.</div>
+        <div id="timetracker-panel"></div>
+      </section>
+    </div>
+  `;
+  // Weather
+  const weatherPanel = document.getElementById('weather-panel');
+  weatherPanel.innerHTML = '<div id="weather-widget"></div>';
+  initWeatherWidget();
+  // Tasks
+  const tasksPanel = document.getElementById('tasks-panel');
+  bindComponentToStateWithDeps('TaskManager', {}, tasksPanel);
+  // Chat
+  const chatPanel = document.getElementById('chat-panel');
+  bindComponentToStateWithDeps('Chat', {}, chatPanel);
+  // Time Tracker
+  const timePanel = document.getElementById('timetracker-panel');
+  bindComponentToStateWithDeps('TimeTracker', {}, timePanel);
+});
+
 registerRoute('/theme-switcher', () => {
   const app = document.getElementById('app');
-  if (currentComponent?.unmount) currentComponent.unmount();
-  currentComponent = bindComponentToStateWithDeps('ThemeSwitcher', {}, app);
+  if (currentComponent && currentComponent.unmount) {
+    currentComponent.unmount();
+    currentComponent = null;
+  }
+  renderComponent('ThemeSwitcher', {}, app);
 });
+
+// registerRoute('/heavy-component /lazy-demo', () => {
+//   const app = document.getElementById('app');
+//   if (currentComponent && currentComponent.unmount) {
+//     currentComponent.unmount();
+//     currentComponent = null;
+//   }
+//   renderComponent('HeavyComponent Lazy-loading', {}, app);
+// });
+
+// registerRoute('/offline-demo', () => {
+//   const app = document.getElementById('app');
+//   if (currentComponent && currentComponent.unmount) {
+//     currentComponent.unmount();
+//     currentComponent = null;
+//   }
+//   renderComponent('OfflineDemo', {}, app);
+// });
+
+// registerRoute('/undo-redo', () => {
+//   const app = document.getElementById('app');
+//   if (currentComponent && currentComponent.unmount) {
+//     currentComponent.unmount();
+//     currentComponent = null;
+//   }
+//   renderComponent('UndoRedoDemo', {}, app);
+// });
 
 // Handle unknown routes
 registerNotFound(() => {
@@ -271,3 +401,51 @@ window.navigateTo = function(path, event) {
   history.pushState({}, '', path);
   navigateTo(path);
 };
+
+// Theme modal logic
+function showThemeModal() {
+  let modal = document.getElementById('theme-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'theme-modal';
+    modal.style = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);z-index:10000;display:flex;align-items:center;justify-content:center;';
+    modal.innerHTML = `
+      <div class="modal-window" style="padding:32px 24px;border-radius:16px;min-width:320px;min-height:200px;position:relative;box-shadow:0 8px 32px #0002;">
+        <button id="close-theme-modal" style="position:absolute;top:8px;right:8px;font-size:20px;">✖</button>
+        <div id="theme-modal-content"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('close-theme-modal').onclick = () => {
+      modal.remove();
+    };
+    // Render ThemeSwitcher inside modal
+    renderComponent('ThemeSwitcher', {}, document.getElementById('theme-modal-content'));
+  }
+}
+document.getElementById('theme-modal-btn').onclick = showThemeModal;
+
+// Theme indicator logic
+function updateThemeIndicator() {
+  const mode = getState('themeMode');
+  const custom = getState('customTheme');
+  // search only in header
+  const indicator = document.querySelector('.header-row #theme-indicator');
+  if (!indicator) { console.log('theme-indicator not found in  header'); return; }
+  let color = '#fff';
+  if (mode === 'light') color = Config.theme.vars.light['--bg-color'];
+  else if (mode === 'dark') color = Config.theme.vars.dark['--bg-color'];
+  else if (mode === 'custom') color = custom['--bg-color'] || '#fff';
+  indicator.style.background = color;
+  console.log('theme-indicator in header, color:', color);
+}
+subscribe(['themeMode', 'customTheme'], updateThemeIndicator);
+setTimeout(updateThemeIndicator, 0);
+
+// Theme toast logic
+function showThemeToast() {
+  const toast = document.getElementById('theme-toast');
+  toast.style.display = 'block';
+  setTimeout(() => { toast.style.display = 'none'; }, 1800);
+}
+subscribe('themeMode', showThemeToast);

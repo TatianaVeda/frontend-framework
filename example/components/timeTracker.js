@@ -1,10 +1,6 @@
 import { getState, setState, subscribe, unsubscribe } from 'framework/state.js';
 
 export function TimeTracker() {
-  // Initialize state
-  setState('timeElapsed', 0);
-  setState('timerInterval', null);
-
   const MAX_SECONDS = 3600; // 1 hour
   let interval = null;
 
@@ -34,7 +30,6 @@ export function TimeTracker() {
     const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノ';
 
     function drawMatrix() {
-      // Semi-transparent background for fading effect
       ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = '#0F0';
@@ -57,44 +52,47 @@ export function TimeTracker() {
     return setInterval(drawMatrix, 50);
   }
 
-  // Buttons
+  // Start timer logic (ваша логика, с визуальным обновлением)
   const startTimer = () => {
-    stopTimer();
+    const prevInterval = getState('timerInterval');
+    if (prevInterval) clearInterval(prevInterval);
     setState('timeElapsed', 0);
-
-    // pulse effect
-    const circle = document.getElementById('timerCircle');
-    circle && circle.classList.add('pulse');
-
     const start = Date.now();
-    interval = setInterval(() => {
+    const interval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - start) / 1000);
       setState('timeElapsed', elapsed);
     }, 1000);
     setState('timerInterval', interval);
+    const circle = document.getElementById('timerCircle');
+    if (circle) circle.classList.add('pulse');
+    updateVisual(0);
   };
 
+  // Stop timer logic (dashboard logic with visual update)
   const stopTimer = () => {
-    const cur = getState('timerInterval');
-    if (cur) {
-      clearInterval(cur);
+    const currentInterval = getState('timerInterval');
+    if (currentInterval) {
+      clearInterval(currentInterval);
       setState('timerInterval', null);
     }
     const circle = document.getElementById('timerCircle');
-    circle && circle.classList.remove('pulse');
+    if (circle) circle.classList.remove('pulse');
   };
 
+  // Continue timer logic (dashboard logic with visual update)
   const continueTimer = () => {
     if (getState('timerInterval') || getState('timeElapsed') === 0) return;
     const start = Date.now() - getState('timeElapsed') * 1000;
-    interval = setInterval(() => {
+    // Clear previous interval, if any
+    const prevInterval = getState('timerInterval');
+    if (prevInterval) clearInterval(prevInterval);
+    const interval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - start) / 1000);
       setState('timeElapsed', elapsed);
     }, 1000);
     setState('timerInterval', interval);
-
     const circle = document.getElementById('timerCircle');
-    circle && circle.classList.add('pulse');
+    if (circle) circle.classList.add('pulse');
   };
 
   // React to state changes
@@ -206,11 +204,10 @@ export function TimeTracker() {
     lifecycle: {
       mount: (node) => {
         console.info('TimeTracker mounted', node);
-        setState('timeElapsed', 0);
-        setState('timerInterval', null);
-        // first render
-        setTimeout(() => updateVisual(0), 0);
-
+        // Инициализация только если значения не заданы
+        if (getState('timeElapsed') === undefined) setState('timeElapsed', 0);
+        if (getState('timerInterval') === undefined) setState('timerInterval', null);
+        setTimeout(() => updateVisual(getState('timeElapsed')), 0);
         // Start 'Matrix' animation
         const canvas = node.querySelector('#matrixCanvas');
         node._matrixInterval = startMatrixAnimation(canvas);
@@ -223,7 +220,7 @@ export function TimeTracker() {
       },
       unmount: (node) => {
         console.info('TimeTracker unmounted', node);
-        stopTimer();
+        //stopTimer();  Don't reset state and stop timer!
         unsubscribe('timeElapsed', timeUpdateHandler);
         clearInterval(node._matrixInterval);
       }

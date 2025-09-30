@@ -1,5 +1,7 @@
-import Logger from '../logger.js';
-export const memoryCache = new Map(); // In-memory cache for storing responses (Map объект для кеширования в памяти)
+//frontend-framework/framework/utils/request.js
+
+import Logger from '../logger.js'; // make sure Logger is imported, if used
+export const memoryCache = new Map(); // In-memory cache for storing responses (Map)
 
 const circuitState = {
   failures: 0,               // Number of consecutive failures (количество последовательных неудач)
@@ -23,12 +25,12 @@ export async function request(endpoint, method, data = null, options = {}) {
     onError,
     metricsLabel,
     circuitBreaker,
-    progressCb,              // Callback for download progress (колбэк прогресса загрузки)
-    uploadProgressCb,        // Callback for upload progress (колбэк прогресса отправки)
+    progressCb,         // for progress when downloading (GET)
+    uploadProgressCb,   // new option for progress when uploading (POST/PUT)
     ...fetchOptions
   } = options;
 
-  // Append URL query parameters if provided
+  // 1. Collect query-string, URL query parameters if provided
   if (params) {
     const qs = new URLSearchParams(params).toString();
     endpoint += endpoint.includes('?') ? '&' + qs : '?' + qs;
@@ -71,6 +73,7 @@ export async function request(endpoint, method, data = null, options = {}) {
   const config = {
     method,
     headers: {
+      // For regular JSON requests, but in case of upload we will redefine below
       'Content-Type': data && !(data instanceof Blob) ? 'application/json' : undefined,
       ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {}),
       ...(options.requestId ? { 'X-Request-Id': options.requestId } : {}),
@@ -85,19 +88,20 @@ export async function request(endpoint, method, data = null, options = {}) {
     ...fetchOptions,
   };
 
-  // Handle large Blob uploads in chunks with progress callback
+  // Handle large Blob uploads in chunks with progress callback. If this is POST/PUT and we are sending Blob, then we send it in chunks:
   const isUpload = uploadProgressCb && (method.toUpperCase() === 'POST' || method.toUpperCase() === 'PUT');
   if (isUpload && data instanceof Blob) {
-
+    // Start «splitting» into chunks and sending
     const total = data.size;
     let uploaded = 0;
-    const chunkSize = Math.ceil(total / 20); // Divide upload into 20 parts
+    const chunkSize = Math.ceil(total / 20); // split into 20 chunks
     for (let start = 0; start < total; start += chunkSize) {
       const slice = data.slice(start, start + chunkSize);
-
+      // Send only the body without JSON.stringify
       await fetch(endpoint, {
         method,
         headers: {
+          // save other headers (e.g. Authorization), but not Content-Type
           ...config.headers,
           'Content-Type': slice.type || 'application/octet-stream'
         },
@@ -108,14 +112,14 @@ export async function request(endpoint, method, data = null, options = {}) {
       try {
         uploadProgressCb(uploaded, total);
       } catch (hookErr) {
-        Logger.warn('Error in uploadProgressCb:', hookErr); // «Ошибка в uploadProgressCb:» => "Error in uploadProgressCb:"
+        Logger.warn('Error in uploadProgressCb:', hookErr); // "Error in uploadProgressCb:"
       }
     }
-
+    // After «chunking» is complete, return a simple object
     return { success: true };
   }
 
-
+  // 8. If method !== GET and not Blob, then serialize JSON
   let payload = null;
   // Serialize non-GET data, applying any transform if provided
   if (data !== null && method.toUpperCase() !== 'GET') {
@@ -129,7 +133,7 @@ export async function request(endpoint, method, data = null, options = {}) {
     try {
       onRequest(config, endpoint);
     } catch (hookErr) {
-      Logger.warn('Error in onRequest hook:', hookErr); // «Ошибка в onRequest-хуке:» => "Error in onRequest hook:"
+      Logger.warn('Error in onRequest hook:', hookErr); // "Error in onRequest hook:"
     }
   }
 
@@ -148,7 +152,7 @@ export async function request(endpoint, method, data = null, options = {}) {
         try {
           onResponse(response);
         } catch (hookErr) {
-          Logger.warn('Error in onResponse hook:', hookErr); // «Ошибка в onResponse-хуке:» => "Error in onResponse hook:"
+          Logger.warn('Error in onResponse hook:', hookErr); // Error in onResponse hook:"
         }
       }
 
@@ -177,7 +181,7 @@ export async function request(endpoint, method, data = null, options = {}) {
           try {
             progressCb(received, contentLength);
           } catch (hookErr) {
-            Logger.warn('Error in progressCb:', hookErr); // «Ошибка в progressCb:» => "Error in progressCb:"
+            Logger.warn('Error in progressCb:', hookErr); // "Error in progressCb:"
           }
         }
 
@@ -192,7 +196,7 @@ export async function request(endpoint, method, data = null, options = {}) {
         return JSON.parse(text);
       }
 
-      // Default response parsing based on responseType
+      // 12. Regular JSON/text/blob/etc. handling,  Default response parsing based on responseType
       let result;
       switch (responseType) {
         case 'text':
@@ -229,7 +233,7 @@ export async function request(endpoint, method, data = null, options = {}) {
 
       // Handle abort (timeout) errors
       if (err.name === 'AbortError') {
-        const msg = `Request aborted due to timeout (${timeout} ms): ${endpoint}`; // «Запрос отменён по таймауту» => "Request aborted due to timeout"
+        const msg = `Request aborted due to timeout (${timeout} ms): ${endpoint}`; //"Request aborted due to timeout"
         if (!skipErrorLog) Logger.error(msg);
         if (onError) onError(err);
         throw err;
@@ -251,7 +255,7 @@ export async function request(endpoint, method, data = null, options = {}) {
         }
       }
 
-      const errMsg = `Error performing ${method} request: ${err.message}`; // «Ошибка при выполнении ...» => "Error performing ... request"
+      const errMsg = `Error performing ${method} request: ${err.message}`; // Error performing ... request
       if (!skipErrorLog) Logger.error(errMsg, err.stack);
       if (onError) onError(err);
       throw err;

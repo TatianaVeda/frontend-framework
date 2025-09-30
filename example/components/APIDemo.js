@@ -10,6 +10,7 @@ export function APIDemo() {
     // Clear any existing content and show a loading message
     clearChildren(resultContainer);
     setTextContent(resultContainer, 'Loading data...');
+    setTextContent(resultContainer, 'Loading data...');
 
     try {
       // Perform the GET request through the proxy endpoint
@@ -23,6 +24,7 @@ export function APIDemo() {
     } catch (err) {
       // On error, clear the container and show an error message
       clearChildren(resultContainer);
+      setTextContent(resultContainer, 'Error fetching data.');
       setTextContent(resultContainer, 'Error fetching data.');
       console.error('APIDemo fetchData error:', err);
     }

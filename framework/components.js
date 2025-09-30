@@ -1,8 +1,6 @@
 import {
   subscribe,
   unsubscribe,
-  getState,
-  setState,
   beginDependencyCollection,
   endDependencyCollection
 } from 'framework/state.js';
@@ -38,7 +36,7 @@ export function renderVNode(vnode, isInSvg = false) {
     return vnode;
   }
 
-  // Element node: выбираем namespace
+  // Element node: select namespace
   let el;
   if (vnode.tag === 'svg') {
     el = document.createElementNS(SVG_NS, 'svg');
@@ -54,21 +52,21 @@ export function renderVNode(vnode, isInSvg = false) {
     el.setAttribute("data-key", vnode.key);
   }
 
-  // Props / атрибуты (включая class через setAttribute)
+  // Props / attributes (including class via setAttribute)
   if (vnode.props) {
     Object.entries(vnode.props).forEach(([attr, value]) => {
       el.setAttribute(attr, value);
     });
   }
 
-  // Слушатели событий
+  // Event listeners
   if (vnode.events) {
     Object.entries(vnode.events).forEach(([eventName, handler]) => {
       el.addEventListener(eventName, handler);
     });
   }
 
-  // Дети
+  // Children
   let children = vnode.children;
   if (children != null && !Array.isArray(children)) {
     children = [children];
@@ -109,7 +107,7 @@ function runBatchUpdates() {
       fn();
     } catch (err) {
       Logger.error('Error in batch update:', err);
-    }
+     }
   });
   pendingBatchUpdates = [];
   isBatchScheduled = false;
@@ -136,7 +134,7 @@ function diffAndPatch(parent, oldVNode, newVNode, index = 0) {
       try {
         oldVNode.lifecycle.unmount(domNode);
       } catch (err) {
-        Logger.error('Error in component unmount method:', err);
+        Logger.error('Error in unmount component method:', err);
       }
     }
     if (domNode) {
@@ -156,7 +154,7 @@ function diffAndPatch(parent, oldVNode, newVNode, index = 0) {
       try {
         newVNode.lifecycle.mount(newDomNode);
       } catch (err) {
-        Logger.error('Error in component mount method:', err);
+        Logger.error('Error in mount component method:', err);
       }
     }
     return;
@@ -173,7 +171,7 @@ function diffAndPatch(parent, oldVNode, newVNode, index = 0) {
       try {
         newVNode.lifecycle.mount(newDomNode);
       } catch (err) {
-        Logger.error('Error in component mount method (no domNode):', err);
+        Logger.error('Error in mount component method (when domNode is missing):', err);
       }
     }
     return;
@@ -188,7 +186,7 @@ function diffAndPatch(parent, oldVNode, newVNode, index = 0) {
       try {
         oldVNode.lifecycle.unmount(domNode);
       } catch (err) {
-        Logger.error('Error in component unmount during replace:', err);
+        Logger.error('Error in unmount component method when replacing:', err);
       }
     }
     const newDomNode = renderVNode(newVNode);
